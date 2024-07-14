@@ -1,8 +1,9 @@
 # STEER: Systematic and Tuneable Evaluation of Economic Rationality in LLMs
 
 A multiple-choice question-answering (MCQA) benchmark containing test questions on elements of economic rationality. 
-
 These elements are organized into a four order taxonomy: ![](taxonomy.jpg)
+
+You can view all of these elements interactively on our website: [![STEER Benchmark](images/steer_small.png)](https://steer-benchmark.cs.ubc.ca)
 
 ## Schema
 The ```elements/``` directory contains all of the individual elements files. Each element contains four dataframes: questions, options, answers, and questions_metadata.
@@ -36,6 +37,9 @@ The ```elements/``` directory contains all of the individual elements files. Eac
 | difficulty_level | ```int``` | The difficulty level of the question |
 | type | ```str``` | A field denoting a semantically relevant piece of the question. |
 | tags | ```str``` | A semicolon delimited field with relevant textual information about the question: e.g., first_person, explicitly asking for the question, etc.. |
+
+> [!NOTE]
+> Some elements are graded on whether a model was consistent in its answers. For example, in the independence element the choice in the first question should be the same in the second. This is not something present in the Answers DataFrame.
 
 # Citation
 
