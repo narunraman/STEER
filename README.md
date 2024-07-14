@@ -3,7 +3,9 @@
 A multiple-choice question-answering (MCQA) benchmark containing test questions on elements of economic rationality. 
 These elements are organized into a four order taxonomy: ![](taxonomy.jpg)
 
-You can view all of these elements interactively on our website: [![STEER Benchmark](images/steer_small.png)](https://steer-benchmark.cs.ubc.ca)
+You can view all of these elements interactively on our website: 
+
+[![STEER Benchmark](https://img.shields.io/badge/STEER%20Benchmark-gray)](https://steer-benchmark.cs.ubc.ca)
 
 ## Schema
 The ```elements/``` directory contains all of the individual elements files. Each element contains four dataframes: questions, options, answers, and questions_metadata.
