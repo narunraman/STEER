@@ -1,0 +1,43 @@
+[project]
+name = "steer-bench"
+dynamic = ["version"]
+description = "Inspect evaluations for the STEER and STEER-ME economic-rationality benchmarks"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Narun Raman" }]
+dependencies = [
+    "inspect-ai>=0.3.276",
+    "pandas>=2.0",
+    "pyarrow>=14",
+]
+
+[project.optional-dependencies]
+# Loading from the Hugging Face Hub (once the datasets are published).
+hf = ["datasets>=2.18"]
+
+[project.scripts]
+steer-bench-export = "steer_bench.export:main"
+
+[project.entry-points.inspect_ai]
+steer_bench = "steer_bench._registry"
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/steer_bench/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/steer_bench"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: installs the package into a scratch venv and runs the inspect CLI"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
