@@ -16,6 +16,7 @@ dependencies = [
 hf = ["datasets>=2.18"]
 
 [project.scripts]
+steer-bench = "steer_bench.cli:main"
 steer-bench-export = "steer_bench.export:main"
 
 [project.entry-points.inspect_ai]

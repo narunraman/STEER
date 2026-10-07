@@ -152,8 +152,12 @@ def sample_row(value: dict[str, Any], metadata: dict[str, Any], seconds: float |
     return r
 
 
-def cells_from_logs(paths: Iterable[str]) -> tuple[Any, Any, dict[str, Any]]:
-    """(cells DataFrame, models DataFrame, provenance dict) for the given logs/directories."""
+def cells_from_logs(paths: Iterable[str], tasks: Iterable[str] | None = None) -> tuple[Any, Any, dict[str, Any]]:
+    """(cells DataFrame, models DataFrame, provenance dict) for the given logs/directories.
+
+    ``tasks``: keep only logs of these tasks (``steer`` / ``steer_me``; default both).
+    """
+    keep = set(tasks) if tasks is not None else TASKS
     import pandas as pd
     from inspect_ai.log import read_eval_log, read_eval_log_samples
 
@@ -167,7 +171,7 @@ def cells_from_logs(paths: Iterable[str]) -> tuple[Any, Any, dict[str, Any]]:
             skipped.append({"path": str(path), "reason": f"unreadable: {e}"})
             continue
         task_name = header.eval.task.split("/")[-1]
-        if task_name not in TASKS:
+        if task_name not in keep:
             skipped.append({"path": str(path), "reason": f"task {header.eval.task}"})
             continue
         settings = task_settings(header.eval.task_args or {}, header.eval.metadata)

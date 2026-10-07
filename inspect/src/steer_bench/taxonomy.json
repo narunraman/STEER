@@ -1,0 +1,1027 @@
+{
+ "source": "Derived copy of autosteer bcde494 src/autosteer/web/content/{elements,steer_taxonomy,steer_me_taxonomy}.json (settings, modules and elements in paper order, display names, held status). Regenerate with tools/build_taxonomy.py.",
+ "benchmarks": {
+  "steer": {
+   "name": "STEER",
+   "settings": [
+    {
+     "number": 1,
+     "name": "Foundations",
+     "modules": [
+      {
+       "number": "1.1",
+       "name": "Arithmetic",
+       "elements": [
+        {
+         "element": "add_sub",
+         "name": "Addition and Subtraction",
+         "id": "1.1.a",
+         "held": false
+        },
+        {
+         "element": "mult_div",
+         "name": "Multiplication and Division",
+         "id": "1.1.b",
+         "held": false
+        },
+        {
+         "element": "compute_expectations",
+         "name": "Compute Expectations",
+         "id": "1.1.c",
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "1.2",
+       "name": "Optimization",
+       "elements": [
+        {
+         "element": "micro_utility",
+         "name": "Optimize over a Discrete Set",
+         "id": "1.2.a",
+         "held": false
+        },
+        {
+         "element": "optimize_continuous",
+         "name": "Optimize a Continuous Function",
+         "id": "1.2.b",
+         "held": false
+        },
+        {
+         "element": "constrained_optimization",
+         "name": "Constrained Optimization",
+         "id": "1.2.c",
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "1.3",
+       "name": "Probability",
+       "elements": [
+        {
+         "element": "prob_basic",
+         "name": "Compute Probabilities of Outcomes",
+         "id": "1.3.a",
+         "held": false
+        },
+        {
+         "element": "complement_rule",
+         "name": "Complement Rule",
+         "id": "1.3.b",
+         "held": false
+        },
+        {
+         "element": "bayes_rule",
+         "name": "Bayes' Rule",
+         "id": "1.3.c",
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "1.4",
+       "name": "Logic",
+       "elements": [
+        {
+         "element": "categorical_syllogism",
+         "name": "Categorical Syllogism",
+         "id": "1.4.a",
+         "held": false
+        },
+        {
+         "element": "conditional_syllogism",
+         "name": "Conditional Syllogism",
+         "id": "1.4.b",
+         "held": false
+        },
+        {
+         "element": "equiv_contrapositive",
+         "name": "Logical Equivalence of Contrapositive",
+         "id": "1.4.c",
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "1.5",
+       "name": "Theory of Mind",
+       "elements": [
+        {
+         "element": "first_order_false_belief",
+         "name": "First-Order False Belief",
+         "id": "1.5.a",
+         "held": false
+        },
+        {
+         "element": "second_order_false_belief",
+         "name": "Second-Order False Belief",
+         "id": "1.5.b",
+         "held": false
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "name": "Decisions in Single-Agent Environments",
+     "modules": [
+      {
+       "number": "2.1",
+       "name": "Axioms of Utility in Deterministic Environments",
+       "elements": [
+        {
+         "element": "completeness",
+         "name": "Completeness",
+         "id": "2.1.a",
+         "held": false
+        },
+        {
+         "element": "transitivity",
+         "name": "Transitivity",
+         "id": "2.1.b",
+         "held": false
+        },
+        {
+         "element": "independence",
+         "name": "Independence",
+         "id": "2.1.c",
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "2.2",
+       "name": "Avoidance of Cognitive Biases in Deterministic Environments",
+       "elements": [
+        {
+         "element": "sunk_cost",
+         "name": "Avoidance of the Sunk Cost Fallacy",
+         "id": "2.2.a",
+         "held": false
+        },
+        {
+         "element": "endowment_effect",
+         "name": "Avoidance of the Endowment Effect",
+         "id": "2.2.b",
+         "held": false
+        },
+        {
+         "element": "time_inconsistency",
+         "name": "Avoidance of Time Inconsistency",
+         "id": "2.2.c",
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "2.3",
+       "name": "Axioms of Utility in Stochastic Environments",
+       "elements": [
+        {
+         "element": "completeness_risk",
+         "name": "Completeness over Lotteries",
+         "id": "2.3.a",
+         "held": false
+        },
+        {
+         "element": "transitivity_risk",
+         "name": "Transitivity over Lotteries",
+         "id": "2.3.b",
+         "held": false
+        },
+        {
+         "element": "independence_risk",
+         "name": "Independence over Lotteries",
+         "id": "2.3.c",
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "2.4",
+       "name": "Risk Neutral Expected Utility Computations",
+       "elements": [
+        {
+         "element": "compute_expected_utility",
+         "name": "Compute Expected Utility",
+         "id": "2.4.a",
+         "held": false
+        },
+        {
+         "element": "maximize_expected_utility",
+         "name": "Maximize Expected Utility",
+         "id": "2.4.b",
+         "held": false
+        },
+        {
+         "element": "loss_aversion",
+         "name": "Avoidance of Loss Averse Behavior",
+         "id": "2.4.e",
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "2.5",
+       "name": "Avoidance of Cognitive Biases in Stochastic Environments",
+       "elements": [
+        {
+         "element": "gamblers_fallacy",
+         "name": "Avoidance of the Gambler's Fallacy",
+         "id": "2.5.a",
+         "held": false
+        },
+        {
+         "element": "certainty_effect",
+         "name": "Avoidance of the Certainty Effect",
+         "id": "2.5.b",
+         "held": false
+        },
+        {
+         "element": "reflection_effect",
+         "name": "Avoidance of the Reflection Effect",
+         "id": "2.5.c",
+         "held": false
+        },
+        {
+         "element": "ambiguity_aversion",
+         "name": "Avoidance of Ambiguity Aversion",
+         "id": "2.5.d",
+         "held": false
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "name": "Decisions in Multi-Agent Environments",
+     "modules": [
+      {
+       "number": "3.1",
+       "name": "Normal Form Games",
+       "elements": [
+        {
+         "element": "interpret_games",
+         "name": "Interpret Games",
+         "id": "3.1.a",
+         "held": false
+        },
+        {
+         "element": "best_response",
+         "name": "Best Response",
+         "id": "3.1.b",
+         "held": false
+        },
+        {
+         "element": "dominant_strategies",
+         "name": "Dominant Strategies",
+         "id": "3.1.c",
+         "held": false
+        },
+        {
+         "element": "dominated_strategies",
+         "name": "Avoidance of Dominated Strategies",
+         "id": "3.1.d",
+         "held": false
+        },
+        {
+         "element": "iterated_removal",
+         "name": "Iterated Removal of Dominated Strategies",
+         "id": "3.1.e",
+         "held": false
+        },
+        {
+         "element": "pure_nash",
+         "name": "Pure Nash Equilibrium",
+         "id": "3.1.f",
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "3.2",
+       "name": "Extensive Form Games",
+       "elements": [
+        {
+         "element": "backward_induction",
+         "name": "Backward Induction",
+         "id": "3.2.a",
+         "held": false
+        },
+        {
+         "element": "subgame_nash",
+         "name": "Subgame-Perfect Nash Equilibrium",
+         "id": "3.2.b",
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "3.3",
+       "name": "Imperfect Information in Extensive Form Games",
+       "elements": []
+      },
+      {
+       "number": "3.4",
+       "name": "Infinitely Repeated Games",
+       "elements": [
+        {
+         "element": "feasibility",
+         "name": "Feasibility in Infinitely Repeated Games",
+         "id": "3.4.a",
+         "held": false
+        },
+        {
+         "element": "enforceability",
+         "name": "Enforceability in Infinitely Repeated Games",
+         "id": "3.4.b",
+         "held": false
+        },
+        {
+         "element": "trigger",
+         "name": "Trigger Strategies",
+         "id": "3.4.c",
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "3.5",
+       "name": "Bayesian Games",
+       "elements": [
+        {
+         "element": "bayes_nash",
+         "name": "Bayes-Nash Equilibrium",
+         "id": "3.5.a",
+         "held": false
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "number": 4,
+     "name": "Decisions on Behalf of Other Agents",
+     "modules": [
+      {
+       "number": "4.1",
+       "name": "Axioms of Social Choice",
+       "elements": [
+        {
+         "element": "pareto_sc",
+         "name": "Pareto Efficiency in Social Welfare Functions",
+         "id": "4.1.a",
+         "held": false
+        },
+        {
+         "element": "sc_monotonicity_rules",
+         "name": "Monotonicity in Social Welfare Functions",
+         "id": "4.1.b",
+         "held": false
+        },
+        {
+         "element": "sc_transitivity_rules",
+         "name": "Transitivity in Social Welfare Functions",
+         "id": "4.1.c",
+         "held": false
+        },
+        {
+         "element": "sc_nondictatorship",
+         "name": "Non-Dictatorial Social Welfare Function",
+         "id": "4.1.d",
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "4.2",
+       "name": "Social Choice",
+       "elements": [
+        {
+         "element": "plurality_voting",
+         "name": "Plurality Vote",
+         "id": "4.2.a",
+         "held": false
+        },
+        {
+         "element": "borda_count",
+         "name": "Borda Count",
+         "id": "4.2.b",
+         "held": false
+        },
+        {
+         "element": "copeland_method",
+         "name": "Copeland's Method",
+         "id": "4.2.c",
+         "held": false
+        },
+        {
+         "element": "fair_division",
+         "name": "Fair Division Algorithms",
+         "id": "4.2.d",
+         "held": false
+        },
+        {
+         "element": "condorcet_criterion",
+         "name": "Condorcet Winner",
+         "id": "",
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "4.3",
+       "name": "Desirable Properties in Mechanism Design",
+       "elements": [
+        {
+         "element": "dsic_mechanism",
+         "name": "Dominant Strategy Incentive Compatibility",
+         "id": "4.3.a",
+         "held": false
+        },
+        {
+         "element": "bic_mechanism",
+         "name": "Bayesian Incentive Compatibility",
+         "id": "4.3.b",
+         "held": false
+        },
+        {
+         "element": "ir_mechanism",
+         "name": "Individual Rationality",
+         "id": "4.3.c",
+         "held": false
+        },
+        {
+         "element": "budget_balance",
+         "name": "Budget Balanced",
+         "id": "4.3.d",
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "4.4",
+       "name": "Mechanism Design",
+       "elements": [
+        {
+         "element": "top_trading",
+         "name": "Top Trading Cycles",
+         "id": "4.4.a",
+         "held": false
+        },
+        {
+         "element": "auctions_risk",
+         "name": "Optimal Auction for Bidders with Differing Risk Attitudes",
+         "id": "4.4.b",
+         "held": false
+        },
+        {
+         "element": "auctions_affiliated",
+         "name": "Optimal Auction for Bidders with Affiliated Values",
+         "id": "4.4.c",
+         "held": false
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "steer_me": {
+   "name": "STEER-ME",
+   "settings": [
+    {
+     "number": 1,
+     "name": "Foundations",
+     "modules": [
+      {
+       "number": "1.1",
+       "name": "Optimization",
+       "elements": []
+      },
+      {
+       "number": "1.2",
+       "name": "Systems of Equations",
+       "elements": [
+        {
+         "element": "linear_system_eq",
+         "name": "Linear Systems of Equations",
+         "id": null,
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "1.3",
+       "name": "Derivatives and Homotheticity",
+       "elements": [
+        {
+         "element": "derivatives",
+         "name": "Derivatives",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "exponents",
+         "name": "Exponents",
+         "id": null,
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "1.x",
+       "name": "Arithmetic",
+       "elements": [
+        {
+         "element": "add_sub",
+         "name": "Addition and Subtraction",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "mult_div",
+         "name": "Multiplication and Division",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "compute_expectations",
+         "name": "Compute Expectations",
+         "id": null,
+         "held": false
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "number": 2,
+     "name": "Consumption Decisions in Non-Strategic Environments",
+     "modules": [
+      {
+       "number": "2.1",
+       "name": "Properties of Utility Functions",
+       "elements": [
+        {
+         "element": "diminishing_marginal_utility",
+         "name": "Diminishing Marginal Utility",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "marginal_utility",
+         "name": "Marginal Utility",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "mrs_utility",
+         "name": "Marginal Rate of Substitution",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "mrs_tangency",
+         "name": "Tangency and the Marginal Rate of Substitution",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "substitutes_complements",
+         "name": "Substitutes and Complements",
+         "id": null,
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "2.2",
+       "name": "Deriving Demand",
+       "elements": [
+        {
+         "element": "deriving_demand",
+         "name": "Derivation of Marshallian Demand",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "deriving_hicksian_demand",
+         "name": "Derivation of Hicksian Demand from Expenditure Minimization",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "hicksian_duality",
+         "name": "Duality of Hicksian Demand",
+         "id": null,
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "2.3",
+       "name": "Comparative Statics of Demand",
+       "elements": [
+        {
+         "element": "law_of_demand",
+         "name": "Law of Demand",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "price_elasticity",
+         "name": "Price Elasticity of Demand",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "engel_curves",
+         "name": "Engel Curves",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "income_elasticity",
+         "name": "Income Elasticity of Demand",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "consumption_changes",
+         "name": "Consumption Changes",
+         "id": null,
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "2.4",
+       "name": "Labor Supply",
+       "elements": [
+        {
+         "element": "deriving_labor_supply",
+         "name": "Deriving Labor Supply",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "labor_supply_elasticity",
+         "name": "Labor Supply Elasticity",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "mrs_labor_supply",
+         "name": "Marginal Rate of Substitution in Labor Supply",
+         "id": null,
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "2.5",
+       "name": "Dynamic Consumption Decisions",
+       "elements": [
+        {
+         "element": "arbitrage",
+         "name": "Arbitrage",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "intertemporal_consumption_smoothing",
+         "name": "Intertemporal Consumption Smoothing",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "price_of_risk",
+         "name": "Price of Risk with Mean-Variance Utility",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "state_based_consumption",
+         "name": "State-Contingent Consumption",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "present_value",
+         "name": "Exponential Discounting",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "optimal_portfolio_choice",
+         "name": "Optimal Portfolio Choice with Bid-Ask Spreads",
+         "id": null,
+         "held": false
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "number": 3,
+     "name": "Production Decisions in Non-Strategic Environments",
+     "modules": [
+      {
+       "number": "3.1",
+       "name": "Properties of Production Functions",
+       "elements": [
+        {
+         "element": "diminishing_marginal_product",
+         "name": "Diminishing Marginal Products",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "marginal_production",
+         "name": "Marginal Products",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "output_elasticity",
+         "name": "Output Elasticity",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "returns_to_scale",
+         "name": "Returns to Scale",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "average_cost",
+         "name": "Average Cost",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "marginal_cost",
+         "name": "Marginal Cost",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "elasticity_of_substitution",
+         "name": "Elasticity of Substitution",
+         "id": null,
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "3.2",
+       "name": "Deriving Factor Demand",
+       "elements": [
+        {
+         "element": "cost_minimization_problem",
+         "name": "Expenditure Minimization",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "profit_maximization",
+         "name": "Profit Maximization",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "factor_demand",
+         "name": "Duality of Profit Maximization and Expenditure Minimization",
+         "id": null,
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "3.3",
+       "name": "Comparative Statics with Production",
+       "elements": [
+        {
+         "element": "input_price_response",
+         "name": "Response of Optimal Labor to the Wage",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "supply_elasticity",
+         "name": "Price Elasticity of Supply",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "finding_tfp",
+         "name": "Total Factor Productivity",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "shephards_lemma",
+         "name": "Shephard's Lemma",
+         "id": null,
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "3.4",
+       "name": "Dynamic Production Decisions",
+       "elements": [
+        {
+         "element": "dynamic_profit_max",
+         "name": "Dynamic Profit Maximization",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "entry_exit_decisions",
+         "name": "Entry and Exit Decisions",
+         "id": null,
+         "held": false
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "number": 4,
+     "name": "Non-Strategic Decisions in Multi-Agent Environments",
+     "modules": [
+      {
+       "number": "4.1",
+       "name": "Consumer Goods Market Aggregation",
+       "elements": [
+        {
+         "element": "aggregation_of_consumer_demand",
+         "name": "Aggregation of Consumer Demand",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "aggregation_of_offer_curve",
+         "name": "Aggregation of Offer Curve for the Good",
+         "id": null,
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "4.2",
+       "name": "Factor Market Aggregation",
+       "elements": [
+        {
+         "element": "aggregation_of_capital_demand",
+         "name": "Aggregation of Capital Demand",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "aggregation_of_labor_demand",
+         "name": "Aggregation of Labor Demand",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "aggregation_of_labor_supply",
+         "name": "Aggregation of Labor Supply",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "fixed_factor_aggregation",
+         "name": "Aggregation of Fixed Factor Supply",
+         "id": null,
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "4.3",
+       "name": "Prices in Static Market Equilibrium",
+       "elements": [
+        {
+         "element": "find_eq_price",
+         "name": "Find Equilibrium Price",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "factor_shares_equilibrium",
+         "name": "Factor Shares in Equilibrium",
+         "id": null,
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "4.4",
+       "name": "Comparative Statics of Equilibrium Prices",
+       "elements": [
+        {
+         "element": "tfp_shocks",
+         "name": "Comparative Statics with Total Factor Production Shocks",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "elastic_inelastic_supply",
+         "name": "Comparative Statics with Inelastic or Perfectly Elastic Supply",
+         "id": null,
+         "held": false
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "number": 5,
+     "name": "Evaluating Equilibria and Externalities",
+     "modules": [
+      {
+       "number": "5.1",
+       "name": "Welfare and Decentralization",
+       "elements": [
+        {
+         "element": "welfare_theorem_1",
+         "name": "First Welfare Theorem",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "welfare_theorem_2",
+         "name": "Second Welfare Theorem",
+         "id": null,
+         "held": false
+        }
+       ]
+      },
+      {
+       "number": "5.2",
+       "name": "Welfare Analysis of Market Equilibrium",
+       "elements": [
+        {
+         "element": "capital_market_distortions",
+         "name": "Capital Market Distortions",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "consumer_surplus",
+         "name": "Consumer Surplus",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "producer_surplus",
+         "name": "Producer Surplus",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "efficient_surplus",
+         "name": "Efficient Surplus",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "deadweight_loss",
+         "name": "Deadweight Loss of a Monopoly",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "labor_supply_distortions",
+         "name": "Labor Supply Distortions",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "tax_incidence",
+         "name": "Irrelevance of Tax Incidence",
+         "id": null,
+         "held": false
+        },
+        {
+         "element": "non_distortionary_taxes",
+         "name": "Identify Non-Distortionary Taxes",
+         "id": null,
+         "held": false
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
