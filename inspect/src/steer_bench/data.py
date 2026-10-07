@@ -34,8 +34,13 @@ HF_REVISIONS: dict[str, str | None] = {"steer": None, "steer_me": None}  # TODO(
 
 DATA_DIR_ENV = "STEER_BENCH_DATA_DIR"
 
-# Staged but held back from release (steer-drafts/README.md). Loaded only when named explicitly.
-HELD_ELEMENTS = {"steer": {"enforceability"}, "steer_me": {"tfp_shocks"}}
+# Held back from release (status "held" in the site's elements.json, autosteer
+# web/content, October 2026). Loaded only when named explicitly or with include_held.
+HELD_ELEMENTS = {
+    "steer": {"monotone_sc", "sc_axioms", "sc_dictatorship", "sc_monotonicity", "sc_pareto",
+              "sc_transitivity"},
+    "steer_me": set(),
+}
 
 # Canonical row keys used by the rest of the package.
 ROW_KEYS = (

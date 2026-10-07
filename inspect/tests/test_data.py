@@ -38,8 +38,13 @@ def test_filter_module_and_setting(data_root):
 
 
 def test_held_elements_excluded_unless_named(data_root):
-    assert "tfp_shocks" not in _elements(build_samples("steer_me", data_dir=str(data_root)))
-    assert _elements(build_samples("steer_me", element="tfp_shocks", data_dir=str(data_root))) == {"tfp_shocks": 1}
+    assert "sc_axioms" not in _elements(build_samples("steer", data_dir=str(data_root)))
+    assert _elements(build_samples("steer", element="sc_axioms", data_dir=str(data_root))) == {"sc_axioms": 1}
+    assert _elements(build_samples("steer", include_held=True, data_dir=str(data_root)))["sc_axioms"] == 1
+    # held only in STEER; enforceability and tfp_shocks were released in October 2026
+    assert "sc_axioms" in _elements(build_samples("steer_me", data_dir=str(data_root)))
+    from steer_bench.data import HELD_ELEMENTS
+    assert not {"enforceability", "tfp_shocks"} & (HELD_ELEMENTS["steer"] | HELD_ELEMENTS["steer_me"])
 
 
 def test_data_dir_env_and_benchmark_subdir(data_root, monkeypatch):

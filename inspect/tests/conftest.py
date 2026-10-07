@@ -27,7 +27,7 @@ ELEMENTS = {
     "tiny": ("consumption", "Consumption Decisions", "demand", "Comparative Statics of Demand"),
     "pairs": ("single_agent", "Single Agent", "axioms", "Utility Axioms"),
     "multi": ("single_agent", "Single Agent", "mech", "Mechanism Properties"),
-    "tfp_shocks": ("production", "Production", "statics", "Comparative Statics"),  # held
+    "sc_axioms": ("behalf", "Behalf of Others", "social", "Social Choice"),  # held (STEER)
 }
 
 
@@ -76,7 +76,7 @@ def make_rows() -> dict[str, dict[str, list[dict]]]:
     for g in range(2):
         rows["multi"]["test"].append(_row("multi", f"m{g}", 0, f"multi m{g} part0", ["no", "yes"], 1))
         rows["multi"]["test"].append(_row("multi", f"m{g}", 1, f"multi m{g} part1", ["1", "2", "3"], 1))
-    rows["tfp_shocks"]["test"].append(_row("tfp_shocks", "h0", 0, "held", ["1", "2"], 0))
+    rows["sc_axioms"]["test"].append(_row("sc_axioms", "h0", 0, "held", ["1", "2"], 0))
     return rows
 
 

@@ -81,7 +81,7 @@ Both tasks take the same parameters.
 | `answer_max_tokens` | none | `max_tokens` for the answer turn (none = provider default) |
 | `seed` | `42` | seed for the `none` transform and few-shot selection |
 | `data_dir` | `$STEER_BENCH_DATA_DIR` | staged data (see Data) |
-| `include_held` | `false` | include elements staged but held back from release (`enforceability`, `tfp_shocks`); naming one in `element` also includes it |
+| `include_held` | `false` | include elements staged but held back from release (six STEER social-choice elements, e.g. `sc_axioms`); naming one in `element` also includes it |
 
 ## Formats
 
