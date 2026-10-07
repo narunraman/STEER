@@ -25,8 +25,8 @@ results to the table behind the website's Evals page and makes per-element repor
 ## Quickstart
 
 ```bash
-uv tool install --with vllm git+https://github.com/narunraman/STEER   # or: pip install git+https://github.com/narunraman/STEER
-                                                                        # (drop --with vllm for API models only)
+uv tool install --with-executables-from inspect-ai git+https://github.com/narunraman/STEER
+#   add --with vllm for local open-weight models; or, in a virtualenv: pip install git+https://github.com/narunraman/STEER
 export OPENAI_API_KEY=...                                               # the usual Inspect provider variables
 inspect eval steer_bench/steer_me --model openai/gpt-4o-mini -T element=consumer_surplus --limit 50
 steer-bench report logs/ --out card.html --out card.md
