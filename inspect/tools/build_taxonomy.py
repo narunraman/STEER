@@ -2,14 +2,12 @@
 
 usage: python build_taxonomy.py AUTOSTEER_REPO OUT_JSON
 """
-import json
-import subprocess
-import sys
+import json, subprocess, sys
 from pathlib import Path
 
 repo, out = Path(sys.argv[1]), Path(sys.argv[2])
 C = repo / "src/autosteer/web/content"
-sha = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+sha = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
 elements = json.loads((C / "elements.json").read_text())
 by_name = {}
 for e in elements:
