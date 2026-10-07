@@ -29,7 +29,7 @@ BENCHMARKS = ("steer", "steer_me")
 
 # TODO(release): the Hugging Face datasets are not published yet. Fill in the repo ids and pin
 # each revision to a commit SHA of the published dataset before registering the eval.
-HF_REPOS: dict[str, str] = {"steer": "narunraman/steer", "steer_me": "narunraman/steer_me"}
+HF_REPOS: dict[str, str] = {"steer": "narunraman/steer", "steer_me": "narunraman/steer-me"}
 HF_REVISIONS: dict[str, str | None] = {"steer": None, "steer_me": None}  # TODO(release): commit SHAs
 
 DATA_DIR_ENV = "STEER_BENCH_DATA_DIR"
