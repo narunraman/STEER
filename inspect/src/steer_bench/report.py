@@ -314,11 +314,13 @@ def _heat_td(v: float, sub: str = "", title: str = "", strong: bool = False) -> 
 
 # ------------------------------------------------------------------ HTML
 CSS = """
-:root{--bg:#fcfcfb;--fg:#0b0b0b;--fg2:#52514e;--rule:#e2e1dc;--head:#f4f3f0;color-scheme:light}
+:root{--bg:#fcfcfb;--fg:#0b0b0b;--fg2:#52514e;--rule:#e2e1dc;--head:#f4f3f0;--neg:#d03b33;--mid:#f0efec;
+--pos:#2a78d6;color-scheme:light}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#1a1a19;--fg:#f4f3ef;--fg2:#c3c2b7;
---rule:#3a3a37;--head:#242422;color-scheme:dark}
+--rule:#3a3a37;--head:#242422;--neg:#e0524a;--mid:#383835;--pos:#3987e5;color-scheme:dark}
 :root:not([data-theme=light]) td.heat{background:var(--bd);color:var(--fd)}}
-:root[data-theme=dark]{--bg:#1a1a19;--fg:#f4f3ef;--fg2:#c3c2b7;--rule:#3a3a37;--head:#242422;color-scheme:dark}
+:root[data-theme=dark]{--bg:#1a1a19;--fg:#f4f3ef;--fg2:#c3c2b7;--rule:#3a3a37;--head:#242422;--neg:#e0524a;
+--mid:#383835;--pos:#3987e5;color-scheme:dark}
 :root[data-theme=dark] td.heat{background:var(--bd);color:var(--fd)}
 body{background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;
 margin:0;padding:24px 16px 48px}
@@ -337,7 +339,7 @@ td.heat{background:var(--bl);color:var(--fl);text-align:center;border:2px solid 
 td.heat span{font-weight:600}td.heat small{display:block;font-size:11px;opacity:.85}
 td.heat.strong span{font-weight:800}
 .legend{display:flex;align-items:center;gap:8px;color:var(--fg2);font-size:12px;margin:6px 0 10px}
-.legend .bar{width:220px;height:10px;border-radius:2px;background:linear-gradient(90deg,#d03b33,#f0efec,#2a78d6)}
+.legend .bar{width:220px;height:10px;border-radius:2px;background:linear-gradient(90deg,var(--neg),var(--mid),var(--pos))}
 details{margin:8px 0}summary{cursor:pointer;font-weight:600}
 code{font-size:12px}
 """

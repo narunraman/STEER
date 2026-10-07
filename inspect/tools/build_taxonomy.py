@@ -2,7 +2,9 @@
 
 usage: python build_taxonomy.py AUTOSTEER_REPO OUT_JSON
 """
-import json, subprocess, sys
+import json
+import subprocess
+import sys
 from pathlib import Path
 
 repo, out = Path(sys.argv[1]), Path(sys.argv[2])
