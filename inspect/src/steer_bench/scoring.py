@@ -144,10 +144,19 @@ def _numbers(text: str) -> list[float]:
     return out
 
 
+_BOXED = re.compile(r"\\boxed\{((?:[^{}]|\{[^{}]*\})*)\}")
+
+
 def extract_number(text: str) -> float | None:
-    """The final numeric answer: the first number after the last ``ANSWER:``, else the last
-    number in the text. Thousands separators, ``$`` and a unicode minus are accepted."""
+    """The final numeric answer: the first number in the last ``\\boxed{...}``, else the first
+    number after the last ``ANSWER:``, else the last number in the text. Thousands separators,
+    ``$`` and a unicode minus are accepted."""
     text = text or ""
+    boxed = _BOXED.findall(text)
+    if boxed:
+        nums = _numbers(boxed[-1])
+        if nums:
+            return nums[0]
     idx = max(text.rfind("ANSWER:"), text.rfind("Answer:"))
     if idx >= 0:
         nums = _numbers(text[idx + 7:])

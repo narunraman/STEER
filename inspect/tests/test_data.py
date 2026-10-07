@@ -4,7 +4,9 @@ import pytest
 from conftest import STAGED_ROOT
 
 from steer_bench.data import NONE_OPTION, group_rows, load_rows, none_option_selection
-from steer_bench.prompts import MC_ANSWER_SUFFIX
+from steer_bench.prompts import PROMPT_SETS
+
+ANSWER = PROMPT_SETS["open2025"]["answer"]
 from steer_bench.tasks import build_samples
 
 
@@ -59,9 +61,9 @@ def test_mc_prompt_verbatim(data_root):
     assert s.input == (
         "Q: tiny q0\nA. x\nB. y\nC. z\n"
         "\nAnswer by writing the option letter corresponding to the correct option. "
-        "WRITE ONLY A SINGLE LETTER. \nA: "
+        "RESPOND WITH ONLY A SINGLE LETTER.\nA:"
     )
-    assert s.input.endswith("\n" + MC_ANSWER_SUFFIX)
+    assert s.input.endswith("\n" + ANSWER)
 
 
 # ------------------------------------------------------------------ "No other option is correct"
@@ -117,7 +119,9 @@ def test_few_shot_prefix(data_root):
     for i in (0, 2, 4):
         assert f"cs example {i}\n" not in prefix
     # each example ends with the answer suffix followed by its correct letter
-    assert prefix.count(MC_ANSWER_SUFFIX) == 2
+    assert prefix.count(ANSWER) == 2
+    import re
+    assert len(re.findall(re.escape(ANSWER) + r" [A-D]\n", prefix)) == 2
     # deterministic
     s2 = build_samples("steer_me", element="consumer_surplus", shots=2, data_dir=str(data_root))
     assert [v.metadata["prefix"] for v in s] == [v.metadata["prefix"] for v in s2]

@@ -83,6 +83,9 @@ def test_consistency_rule():
     ("we get 1.5e3 units", 1500.0),
     ("ANSWER: −4", -4.0),
     ("no numbers here", None),
+    ("so x = \\boxed{2.5} and then 3 more", 2.5),
+    ("\\boxed{1} first, then \\boxed{\\$1,200} at the end", 1200.0),
+    ("\\boxed{\\text{no}} but ANSWER: 7", 7.0),
 ])
 def test_extract_number(text, value):
     assert extract_number(text) == value

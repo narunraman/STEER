@@ -9,7 +9,10 @@ from inspect_ai import eval as inspect_eval
 
 from steer_bench import steer, steer_me
 from steer_bench.data import NONE_OPTION
-from steer_bench.prompts import EXPLANATION_SUFFIXES, FREE_ANSWER_SUFFIX, MC_ANSWER_SUFFIX
+from steer_bench.prompts import PROMPT_SETS
+
+ANSWER = PROMPT_SETS["open2025"]["answer"]
+REASON = PROMPT_SETS["open2025"]["reasoning"]
 
 
 def run(task, model, tmp_path, **kw):
@@ -30,10 +33,10 @@ def always(letter_or_text, top=None):
 @pytest.mark.parametrize("fmt", ["mc", "shown", "hidden", "none", "free"])
 def test_each_format_runs(fmt, data_root, tmp_path):
     def policy(last, all_):
-        if last.endswith(MC_ANSWER_SUFFIX):
+        if last.endswith(ANSWER):
             return "A", {"A": 0.6, "B": 0.3, "C": 0.1}
-        if FREE_ANSWER_SUFFIX in last:
-            return "Some reasoning. ANSWER: 10.123", None
+        if fmt == "free":
+            return "Some reasoning. So the answer is \\boxed{10.123}. Check: 5 + 5 = 10.", None
         return "Let me reason about it.", None
 
     log = run(steer_me(format=fmt, element="consumer_surplus", data_dir=str(data_root)),
@@ -47,15 +50,16 @@ def test_each_format_runs(fmt, data_root, tmp_path):
     n_turns = {"mc": 1, "none": 1, "free": 1, "shown": 2, "hidden": 2}[fmt]
     assert len(users) == n_turns and len(s.messages) == 2 * n_turns
     if fmt == "shown":
-        assert "\nA. " in users[0] and users[0].endswith(EXPLANATION_SUFFIXES[2])
-        assert users[1] == MC_ANSWER_SUFFIX
+        assert "\nA. " in users[0] and users[0].endswith("\n" + REASON)
+        assert users[1] == ANSWER
     if fmt == "hidden":
-        assert "\nA. " not in users[0] and users[0].endswith("\n" + EXPLANATION_SUFFIXES[2])
-        assert users[1].startswith("\nA. ") and users[1].endswith("\n" + MC_ANSWER_SUFFIX)
+        assert "\nA. " not in users[0] and users[0].endswith("\n" + REASON)
+        # 2025 strings: the options turn starts directly with "A. " (no leading newline)
+        assert users[1].startswith("A. ") and users[1].endswith("\n" + ANSWER)
     if fmt == "none":
         assert NONE_OPTION in users[0]
     if fmt == "free":
-        assert "\nA. " not in users[0] and users[0].endswith(FREE_ANSWER_SUFFIX)
+        assert "\nA. " not in users[0] and users[0].endswith("\n" + REASON)
         assert m["all/exact_match"] == 0.25  # only question 0 has gold 10.123
 
 
@@ -228,14 +232,14 @@ def test_logprobs_requested_only_on_answer_turn(data_root, tmp_path):
         from conftest import output
         calls.append((messages[-1].text, bool(config.logprobs), config.top_logprobs))
         last = messages[-1].text
-        return output("B", {"B": 0.9}, True) if last.endswith(MC_ANSWER_SUFFIX) else output("reasoning", None, False)
+        return output("B", {"B": 0.9}, True) if last.endswith(ANSWER) else output("reasoning", None, False)
 
     from inspect_ai.model import get_model
     run(steer_me(format="hidden", element="tiny", data_dir=str(data_root)),
         get_model("mockllm/model", custom_outputs=fn), tmp_path)
     assert sorted((lp, k) for _, lp, k in calls) == [(False, None)] * 3 + [(True, 20)] * 3
     for text, lp, _ in calls:
-        assert lp == text.endswith(MC_ANSWER_SUFFIX)
+        assert lp == text.endswith(ANSWER)
 
 
 def test_log_records_task_args_and_responses(data_root, tmp_path):
@@ -243,6 +247,9 @@ def test_log_records_task_args_and_responses(data_root, tmp_path):
     assert log.eval.task_args["format"] == "none"
     assert log.eval.task_version == "0.1.0"
     assert log.eval.metadata["benchmark"] == "steer_me"
+    assert log.eval.metadata["prompts"] == "open2025"
+    assert len(log.eval.metadata["prompts_hash"]) == 12
+    assert log.eval.metadata["prompt_strings"] == PROMPT_SETS["open2025"]
     r = log.samples[0].metadata["responses"][0]
     assert r["letter"] in "ABC" and isinstance(r["top_logprobs"], list)
     assert re.match(r"tiny/q\d", log.samples[0].id)

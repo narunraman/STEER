@@ -11,6 +11,7 @@ from test_eval import pairs_policy, tiny_policy
 
 from steer_bench import steer_me
 from steer_bench.export import KEYS, STAT_COLS, cells_from_logs, main
+from steer_bench.prompts import PROMPT_SETS, prompts_hash
 
 
 def _metrics_from_cells(c: pd.DataFrame, v: str = "cond") -> dict:
@@ -48,7 +49,10 @@ def test_cells_schema_and_counts(logs):
     assert len(prov["logs"]) == 3 and not prov["skipped"]
     assert set(cells["run_id"]) == {"inspect/mockllm/model"}
     assert set(zip(cells["question_format"], cells["car"])) == {("shown_options", False), ("shown_options", True)}
-    assert set(cells["adaptation"]) == {"shots=0;expl=0;explprompt=0;reps=0;retries=0;decoding=logprobs"}
+    h = prompts_hash(PROMPT_SETS["open2025"])
+    assert set(cells["adaptation"]) == {
+        f"shots=0;expl=0;explprompt=0;reps=0;retries=0;decoding=logprobs;prompts=open2025@{h}"}
+    assert models.loc[0, "prompts"] == f"open2025@{h}"
     assert cells["n_rows"].sum() == 3 + 3 + 3
     # additive: one cell per (element, format, car, domain, type, perspective, difficulty)
     assert not cells.duplicated(KEYS).any()

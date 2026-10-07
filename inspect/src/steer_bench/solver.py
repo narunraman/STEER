@@ -7,7 +7,7 @@ from typing import Any
 from inspect_ai.model import ChatMessageUser
 from inspect_ai.solver import Generate, Solver, TaskState, solver
 
-from .prompts import turns_for_part
+from .prompts import load_prompts, turns_for_part
 from .scoring import answer_position_top_logprobs, letters_for, parse_letter
 
 
@@ -22,19 +22,22 @@ def _logprobs_content(state: TaskState) -> list[Any] | None:
 @solver
 def steer_solver(
     format: str = "mc",
-    explanation_length: int = 3,
+    prompts: dict[str, Any] | None = None,
     logprobs: bool = True,
     top_logprobs: int = 20,
     answer_max_tokens: int | None = None,
 ) -> Solver:
     """Ask each part of the sample's group in sequence; record the answers in metadata.
 
-    Each part gets the user turns from ``prompts.turns_for_part``; the model replies to every
+    Each part gets the user turns from ``prompts.turns_for_part`` (``prompts``: the strings of
+    a prompt set, default ``open2025``); the model replies to every
     turn. Option letters continue across parts (A-B for part 0, C-E for part 1, ...), as in the
     original harness. Logprobs are requested only on the answer turn of the multiple-choice
     formats. Per-part results are written to ``state.metadata["responses"]`` (saved in the log):
     the chosen letter and index, and the ``top_logprobs`` at the answer position.
     """
+
+    strings = prompts if prompts is not None else load_prompts()[1]
 
     async def solve(state: TaskState, generate: Generate) -> TaskState:
         md = state.metadata
@@ -42,7 +45,7 @@ def steer_solver(
         responses: list[dict[str, Any]] = []
         offset = 0
         for i, part in enumerate(md["parts"]):
-            turns = turns_for_part(format, part, offset, explanation_length)
+            turns = turns_for_part(format, part, offset, strings)
             if i == 0 and md.get("prefix"):
                 turns[0] = md["prefix"] + turns[0]
             for t, text in enumerate(turns):

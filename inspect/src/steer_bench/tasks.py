@@ -28,7 +28,7 @@ from steer_bench.data import (
     select_few_shot,
 )
 from steer_bench.metrics import task_metrics
-from steer_bench.prompts import few_shot_prefix, turns_for_part
+from steer_bench.prompts import DEFAULT_PROMPTS, few_shot_prefix, load_prompts, prompts_hash, turns_for_part
 from steer_bench.scorer import steer_scorer
 from steer_bench.scoring import parse_gold_number
 from steer_bench.solver import steer_solver
@@ -49,12 +49,16 @@ def build_samples(
     module: str | Iterable[str] | None = None,
     setting: str | Iterable[str] | None = None,
     shots: int = 0,
-    explanation_length: int = 3,
+    prompts: str | dict[str, Any] = DEFAULT_PROMPTS,
     seed: int = 42,
     data_dir: str | None = None,
     include_held: bool = False,
 ) -> list[Sample]:
-    """One Sample per (element, base_id): all parts of a question, asked in sequence."""
+    """One Sample per (element, base_id): all parts of a question, asked in sequence.
+
+    ``prompts``: a prompt set name or JSON path (``prompts.load_prompts``) or its strings.
+    """
+    strings = prompts if isinstance(prompts, dict) else load_prompts(prompts)[1]
     if format not in FORMATS:
         raise ValueError(f"format must be one of {FORMATS}, got {format!r}")
     if shots < 0:
@@ -85,7 +89,7 @@ def build_samples(
         cell = (first["element"], first["type"], first["domain"])
         if cell not in prefixes:
             chosen = select_few_shot(examples, *cell, shots, seed) if shots else []
-            prefixes[cell] = (few_shot_prefix(chosen), len(chosen))
+            prefixes[cell] = (few_shot_prefix(chosen, strings), len(chosen))
         prefix, shots_used = prefixes[cell]
 
         packed = [{k: p[k] for k in ("question_id", "question_text", "options", "correct_index")}
@@ -107,7 +111,7 @@ def build_samples(
             shots_used=shots_used,  # fewer than `shots` if the element has too few examples
             none_option_replaces_correct=(key in replace_correct) if format == "none" else None,
         )
-        shown = (prefix + turns_for_part(format, packed[0], 0, explanation_length)[0])
+        shown = (prefix + turns_for_part(format, packed[0], 0, strings)[0])
         samples.append(Sample(id=f"{key[0]}/{key[1]}", input=shown, target=target, metadata=meta))
     if not samples:
         raise ValueError(f"no {benchmark} questions match element={element!r} module={module!r} "
@@ -116,23 +120,26 @@ def build_samples(
 
 
 def _task(benchmark: str, format: str, element: Any, module: Any, setting: Any, shots: int,
-          prob_mode: str, logprobs: bool, top_logprobs: int, explanation_length: int,
+          prob_mode: str, logprobs: bool, top_logprobs: int, prompts: str,
           sig_figs: int, answer_max_tokens: int | None, seed: int, data_dir: str | None,
           include_held: bool) -> Task:
     if prob_mode not in ("condition", "mix"):
         raise ValueError(f"prob_mode must be 'condition' or 'mix', got {prob_mode!r}")
+    prompts_name, strings = load_prompts(prompts)
     samples = build_samples(benchmark, format, element, module, setting, shots,
-                            explanation_length, seed, data_dir, include_held)
+                            strings, seed, data_dir, include_held)
     calibration = logprobs and format != "free"
     return Task(
         dataset=MemoryDataset(samples, name=benchmark),
-        solver=steer_solver(format, explanation_length, logprobs, top_logprobs, answer_max_tokens),
+        solver=steer_solver(format, strings, logprobs, top_logprobs, answer_max_tokens),
         scorer=steer_scorer(format, sig_figs),
         metrics=task_metrics(prob_mode, calibration=calibration),
         config=GenerateConfig(temperature=0.0),
         version=TASK_VERSION,
         metadata={"benchmark": benchmark, "steer_bench_version": __version__, "format": format,
-                  "shots": shots, "prob_mode": prob_mode, "seed": seed},
+                  "shots": shots, "prob_mode": prob_mode, "seed": seed,
+                  "prompts": prompts_name, "prompts_hash": prompts_hash(strings),
+                  "prompt_strings": strings},
     )
 
 
@@ -146,7 +153,7 @@ def steer(
     prob_mode: str = "condition",
     logprobs: bool = True,
     top_logprobs: int = 20,
-    explanation_length: int = 3,
+    prompts: str = DEFAULT_PROMPTS,
     sig_figs: int = 3,
     answer_max_tokens: int | None = None,
     seed: int = 42,
@@ -155,7 +162,7 @@ def steer(
 ) -> Task:
     """STEER (arXiv 2402.09552). See the package README for the parameters."""
     return _task("steer", format, element, module, setting, shots, prob_mode, logprobs,
-                 top_logprobs, explanation_length, sig_figs, answer_max_tokens, seed, data_dir,
+                 top_logprobs, prompts, sig_figs, answer_max_tokens, seed, data_dir,
                  include_held)
 
 
@@ -169,7 +176,7 @@ def steer_me(
     prob_mode: str = "condition",
     logprobs: bool = True,
     top_logprobs: int = 20,
-    explanation_length: int = 3,
+    prompts: str = DEFAULT_PROMPTS,
     sig_figs: int = 3,
     answer_max_tokens: int | None = None,
     seed: int = 42,
@@ -178,5 +185,5 @@ def steer_me(
 ) -> Task:
     """STEER-ME (arXiv 2502.13119). See the package README for the parameters."""
     return _task("steer_me", format, element, module, setting, shots, prob_mode, logprobs,
-                 top_logprobs, explanation_length, sig_figs, answer_max_tokens, seed, data_dir,
+                 top_logprobs, prompts, sig_figs, answer_max_tokens, seed, data_dir,
                  include_held)

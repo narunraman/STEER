@@ -16,9 +16,13 @@ this package's formats is::
     format   question_format  car    adaptation expl=
     mc       shown_options    False  0
     none     shown_options    True   0
-    shown    shown_options    False  explanation_length
-    hidden   hidden_options   False  explanation_length
-    free     no_options       False  explanation_length
+    shown    shown_options    False  3
+    hidden   hidden_options   False  3
+    free     no_options       False  3
+
+(expl=3 is the unrestricted reasoning instruction, as recorded for the 2025 open-model runs.)
+``adaptation`` ends with ``;prompts=<name>@<hash>``: the prompt set and a hash of its strings
+(``unknown`` for logs written before prompt sets were recorded).
 
 Extra column ``n_prob``: answered rows that had option probabilities. steer-scoring always has
 a distribution for a valid row, so it divides calibration sums by ``n``; for Inspect runs use
@@ -96,14 +100,24 @@ def _log_files(paths: Iterable[str]) -> list[Path]:
     return out
 
 
-def task_settings(task_args: dict[str, Any]) -> dict[str, Any]:
+def prompts_label(task_metadata: dict[str, Any] | None) -> str:
+    md = task_metadata or {}
+    if not md.get("prompts"):
+        return "unknown"
+    return f"{md['prompts']}@{md.get('prompts_hash', '')}"
+
+
+def task_settings(task_args: dict[str, Any], task_metadata: dict[str, Any] | None = None) -> dict[str, Any]:
     fmt = task_args.get("format", "mc")
     qf, car, uses_expl = FORMAT_MAP[fmt]
     shots = int(task_args.get("shots", 0) or 0)
-    expl = int(task_args.get("explanation_length", 3) or 3) if uses_expl else 0
+    expl = 3 if uses_expl else 0
     decoding = "logprobs" if task_args.get("logprobs", True) else "text"
-    adaptation = f"shots={shots};expl={expl};explprompt=0;reps=0;retries=0;decoding={decoding}"
-    return {"format": fmt, "question_format": qf, "car": car, "adaptation": adaptation}
+    prompts = prompts_label(task_metadata)
+    adaptation = (f"shots={shots};expl={expl};explprompt=0;reps=0;retries=0;decoding={decoding}"
+                  f";prompts={prompts}")
+    return {"format": fmt, "question_format": qf, "car": car, "adaptation": adaptation,
+            "prompts": prompts}
 
 
 def sample_row(value: dict[str, Any], metadata: dict[str, Any], seconds: float | None) -> dict[str, float]:
@@ -156,7 +170,7 @@ def cells_from_logs(paths: Iterable[str]) -> tuple[Any, Any, dict[str, Any]]:
         if task_name not in TASKS:
             skipped.append({"path": str(path), "reason": f"task {header.eval.task}"})
             continue
-        settings = task_settings(header.eval.task_args or {})
+        settings = task_settings(header.eval.task_args or {}, header.eval.metadata)
         model = header.eval.model
         run_id = f"inspect/{model}"
         n_samples = 0
@@ -181,12 +195,14 @@ def cells_from_logs(paths: Iterable[str]) -> tuple[Any, Any, dict[str, Any]]:
             "run_id": run_id, "model": model, "source": "inspect", "benchmark": set(),
             "has_logprobs": False, "n_rows": 0, "eval_ids": [], "task_versions": set(),
             "steer_bench_versions": set(), "inspect_versions": set(), "revisions": set(),
+            "prompts": set(),
             "run_date_min": None, "run_date_max": None,
         })
         m["benchmark"].add(task_name)
         m["n_rows"] += n_samples
         m["eval_ids"].append(header.eval.eval_id)
         m["task_versions"].add(str(header.eval.task_version))
+        m["prompts"].add(settings["prompts"])
         m["steer_bench_versions"].add(str((header.eval.metadata or {}).get("steer_bench_version")))
         m["inspect_versions"].add(str(header.eval.packages.get("inspect_ai")) if header.eval.packages else "")
         if header.eval.revision is not None:
@@ -214,7 +230,8 @@ def cells_from_logs(paths: Iterable[str]) -> tuple[Any, Any, dict[str, Any]]:
             m["has_logprobs"] = rid in with_probs
     models_df = pd.DataFrame([
         {**m, **{k: ";".join(sorted(m[k])) for k in
-                 ("benchmark", "task_versions", "steer_bench_versions", "inspect_versions", "revisions")},
+                 ("benchmark", "task_versions", "steer_bench_versions", "inspect_versions", "revisions",
+                  "prompts")},
          "eval_ids": ";".join(m["eval_ids"])}
         for m in models.values()
     ])
