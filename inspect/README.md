@@ -181,7 +181,7 @@ with the website.
 
 Reported per element (`<element>/<metric>`) and over all samples (`all/<metric>`). Definitions
 follow the scoring pipeline behind the website; see also the website's
-[metrics page](https://steer-benchmark.cs.ubc.ca/guide/metrics).
+[scoring page](https://steer-benchmark.cs.ubc.ca/scoring).
 
 | metric | definition |
 |---|---|
