@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+message: "If you use STEER or STEER-ME, please cite the paper for the benchmark you used."
+title: "steer-bench: STEER and STEER-ME evaluations"
+type: software
+license: MIT
+repository-code: "https://github.com/narunraman/STEER"
+url: "https://steer-benchmark.cs.ubc.ca"
+authors:
+  - family-names: Raman
+    given-names: Narun
+preferred-citation:
+  type: conference-paper
+  title: "STEER: Assessing the Economic Rationality of Large Language Models"
+  authors:
+    - family-names: Raman
+      given-names: Narun Krishnamurthi
+    - family-names: Lundy
+      given-names: Taylor
+    - family-names: Amouyal
+      given-names: Samuel Joseph
+    - family-names: Levine
+      given-names: Yoav
+    - family-names: Leyton-Brown
+      given-names: Kevin
+    - family-names: Tennenholtz
+      given-names: Moshe
+  collection-title: "Forty-first International Conference on Machine Learning, ICML 2024, Vienna, Austria, July 21-27, 2024"
+  publisher:
+    name: OpenReview.net
+  year: 2024
+  url: "https://openreview.net/forum?id=nU1mtFDtMX"
+references:
+  - type: conference-paper
+    title: "STEER-ME: Assessing the Microeconomic Reasoning of Large Language Models"
+    authors:
+      - family-names: Raman
+        given-names: Narun
+      - family-names: Lundy
+        given-names: Taylor
+      - family-names: Amin
+        given-names: Thiago
+      - family-names: Perla
+        given-names: Jesse
+      - family-names: Leyton-Brown
+        given-names: Kevin
+    collection-title: "Advances in Neural Information Processing Systems (Datasets and Benchmarks Track)"
+    volume: 38
+    year: 2025
+    url: "https://arxiv.org/abs/2502.13119"
