@@ -186,3 +186,19 @@ def parse_gold_number(text: str) -> float | None:
 
 def letters_for(offset: int, n: int) -> list[str]:
     return list(ascii_uppercase[offset: offset + n])
+
+
+def part_offsets(sizes: list[int]) -> list[int]:
+    """Index of the first option letter of each part of a group, given each part's option count.
+
+    Letters continue across parts (A-B, then C-E, ...). A part whose options would run past Z
+    starts again at A, and later parts continue from there. Groups with at most 26 options in
+    total are unaffected.
+    """
+    offsets, off = [], 0
+    for n in sizes:
+        if off + n > len(ascii_uppercase):
+            off = 0
+        offsets.append(off)
+        off += n
+    return offsets

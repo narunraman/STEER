@@ -8,7 +8,7 @@ from inspect_ai.model import ChatMessageUser
 from inspect_ai.solver import Generate, Solver, TaskState, solver
 
 from .prompts import load_prompts, turns_for_part
-from .scoring import answer_position_top_logprobs, letters_for, parse_letter
+from .scoring import answer_position_top_logprobs, letters_for, parse_letter, part_offsets
 
 
 def _logprobs_content(state: TaskState) -> list[Any] | None:
@@ -32,7 +32,8 @@ def steer_solver(
     Each part gets the user turns from ``prompts.turns_for_part`` (``prompts``: the strings of
     a prompt set, default ``open2025``); the model replies to every
     turn. Option letters continue across parts (A-B for part 0, C-E for part 1, ...), as in the
-    original harness. Logprobs are requested only on the answer turn of the multiple-choice
+    original harness, restarting at A for a part that would run past Z (``part_offsets``).
+    Logprobs are requested only on the answer turn of the multiple-choice
     formats. Per-part results are written to ``state.metadata["responses"]`` (saved in the log):
     the chosen letter and index, and the ``top_logprobs`` at the answer position.
     """
@@ -43,8 +44,9 @@ def steer_solver(
         md = state.metadata
         state.messages = []
         responses: list[dict[str, Any]] = []
-        offset = 0
+        offsets = part_offsets([len(p["options"]) for p in md["parts"]])
         for i, part in enumerate(md["parts"]):
+            offset = offsets[i]
             turns = turns_for_part(format, part, offset, strings)
             if i == 0 and md.get("prefix"):
                 turns[0] = md["prefix"] + turns[0]
@@ -76,7 +78,6 @@ def steer_solver(
                     "chosen": None if letter is None else letters.index(letter),
                     "top_logprobs": top,
                 })
-            offset += n
         state.metadata["responses"] = responses
         return state
 

@@ -21,6 +21,8 @@ from pathlib import Path
 from string import ascii_uppercase
 from typing import Any
 
+from .scoring import part_offsets
+
 DEFAULT_PROMPTS = "open2025"
 
 PROMPT_SETS: dict[str, dict[str, Any]] = {
@@ -64,7 +66,7 @@ def prompts_hash(strings: dict[str, Any]) -> str:
 
 
 def option_block(options: list[str], offset: int) -> str:
-    """``\\nA. opt`` lines; letters continue across the parts of a group (global_option_index)."""
+    """``\\nA. opt`` lines; letters continue across the parts of a group (see ``scoring.part_offsets``)."""
     return "".join(f"\n{ascii_uppercase[offset + i]}. {o}" for i, o in enumerate(options))
 
 
@@ -78,12 +80,11 @@ def few_shot_prefix(example_groups: list[list[dict[str, Any]]], strings: dict[st
         return ""
     prefix = ""
     for parts in example_groups:
-        offset, msgs = 0, []
-        for p in parts:
+        msgs = []
+        for offset, p in zip(part_offsets([len(p["options"]) for p in parts]), parts):
             letter = ascii_uppercase[offset + p["correct_index"]]
             msgs.append("Q: " + p["question_text"] + option_block(p["options"], offset) + "\n"
                         + strings["answer"] + strings["few_shot_answer_sep"] + letter + "\n")
-            offset += len(p["options"])
         prefix += "\n".join(msgs)
     return prefix + "\n\n"
 

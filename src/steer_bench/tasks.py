@@ -30,7 +30,7 @@ from steer_bench.data import (
 from steer_bench.metrics import task_metrics
 from steer_bench.prompts import DEFAULT_PROMPTS, few_shot_prefix, load_prompts, prompts_hash, turns_for_part
 from steer_bench.scorer import steer_scorer
-from steer_bench.scoring import parse_gold_number
+from steer_bench.scoring import parse_gold_number, part_offsets
 from steer_bench.solver import steer_solver
 
 FORMATS = ("mc", "shown", "hidden", "none", "free")
@@ -94,10 +94,7 @@ def build_samples(
 
         packed = [{k: p[k] for k in ("question_id", "question_text", "options", "correct_index")}
                   for p in parts]
-        offsets, off = [], 0
-        for p in packed:
-            offsets.append(off)
-            off += len(p["options"])
+        offsets = part_offsets([len(p["options"]) for p in packed])
         if grading == "answer":
             target = ",".join(ascii_uppercase[o + p["correct_index"]] for o, p in zip(offsets, packed))
         else:

@@ -10,6 +10,7 @@ from steer_bench.scoring import (
     letter_probs,
     parse_letter,
     parse_rule,
+    part_offsets,
     sigfig_equal,
 )
 
@@ -102,3 +103,25 @@ def test_extract_number(text, value):
 ])
 def test_sigfig(value, gold, k, ok):
     assert sigfig_equal(value, gold, k) is ok
+
+
+def test_part_offsets_restart_past_z():
+    # letters continue across parts while they fit in A-Z
+    assert part_offsets([2, 3]) == [0, 2]
+    assert part_offsets([4] * 6) == [0, 4, 8, 12, 16, 20]
+    # a 10-part group of 4 options (40 letters): part 7 would need Y-AB, so it restarts at A
+    assert part_offsets([4] * 10) == [0, 4, 8, 12, 16, 20, 0, 4, 8, 12]
+    assert part_offsets([13, 13, 1]) == [0, 13, 0]
+
+
+def test_turns_for_long_multipart_group():
+    from steer_bench.prompts import load_prompts, turns_for_part
+    from steer_bench.scoring import letters_for
+
+    strings = load_prompts()[1]
+    parts = [{"question_text": f"q{i}", "options": ["w", "x", "y", "z"]} for i in range(10)]
+    for off, part in zip(part_offsets([4] * 10), parts):
+        text = turns_for_part("hidden", part, off, strings)[-1]
+        letters = letters_for(off, 4)
+        assert len(letters) == 4
+        assert all(f"{L}. " in text for L in letters)
