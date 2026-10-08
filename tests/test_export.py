@@ -100,3 +100,19 @@ def test_cli_writes_outputs(logs, tmp_path):
 def test_stat_cols_match_steer_scoring():
     agg = pytest.importorskip("steer_scoring.aggregate")
     assert STAT_COLS == agg.STAT_COLS and KEYS == agg.KEYS
+
+
+def test_duplicate_samples_in_a_log_count_once(logs, monkeypatch):
+    """eval-retry logs can contain a sample twice; the converter keeps one copy."""
+    import inspect_ai.log as L
+    d, _ = logs
+    expected = cells_from_logs([str(d)])[0]["n_rows"].sum()
+    original = L.read_eval_log_samples
+
+    def twice(*a, **k):
+        for s in original(*a, **k):
+            yield s
+            yield s
+
+    monkeypatch.setattr(L, "read_eval_log_samples", twice)
+    assert cells_from_logs([str(d)])[0]["n_rows"].sum() == expected

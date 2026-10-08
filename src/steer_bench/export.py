@@ -177,7 +177,9 @@ def cells_from_logs(paths: Iterable[str], tasks: Iterable[str] | None = None) ->
         settings = task_settings(header.eval.task_args or {}, header.eval.metadata)
         model = header.eval.model
         run_id = f"inspect/{model}"
-        n_samples = 0
+        # A log written by `inspect eval-retry` can hold the same sample twice (the copy started
+        # by the interrupted run and the finished one); keep the last copy of each (id, epoch).
+        by_sample: dict[tuple[Any, int], dict[str, Any]] = {}
         for s in read_eval_log_samples(str(path), all_samples_required=False):
             if not s.scores or SCORER not in s.scores:
                 continue
@@ -193,8 +195,9 @@ def cells_from_logs(paths: Iterable[str], tasks: Iterable[str] | None = None) ->
                 adaptation=settings["adaptation"], domain=md.get("domain"), type=md.get("type"),
                 perspective=md.get("perspective"), difficulty=md.get("difficulty"),
             )
-            rows.append(r)
-            n_samples += 1
+            by_sample[(s.id, s.epoch)] = r
+        rows.extend(by_sample.values())
+        n_samples = len(by_sample)
         m = models.setdefault(run_id, {
             "run_id": run_id, "model": model, "source": "inspect", "benchmark": set(),
             "has_logprobs": False, "n_rows": 0, "eval_ids": [], "task_versions": set(),
