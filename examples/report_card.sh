@@ -1,6 +1,5 @@
 #!/bin/bash
-# Turn one model's logs into a report card (HTML and Markdown), and into the scored-cells table
-# used by the website's Evals page.
+# Turn one model's logs into a report card (HTML and Markdown), and into the scored-cells table.
 set -euo pipefail
 LOGS=${1:-logs}
 steer-bench report "$LOGS" --out report_card.html --out report_card.md

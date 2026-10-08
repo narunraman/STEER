@@ -13,8 +13,8 @@ export HF_HOME=${HF_HOME:-$SCRATCH/hf}          # model weights: a large disk
 
 MODEL=Qwen/Qwen2.5-7B-Instruct
 # -M generation_config=vllm: do not apply the model's generation_config.json sampling defaults
-# (needed for numbers comparable with the website). answer_max_tokens=1 and top_logprobs=20
-# match the website's open-weight runs.
+# (needed for comparable numbers). answer_max_tokens=1 and top_logprobs=20 match the reference
+# runs (see the README).
 for FORMAT in mc shown hidden; do
   inspect eval steer_bench/steer_me --model vllm/$MODEL -M generation_config=vllm \
     -T format=$FORMAT -T answer_max_tokens=1 -T top_logprobs=20 \

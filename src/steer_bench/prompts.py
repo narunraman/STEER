@@ -1,9 +1,9 @@
 """Prompt text: every string the model sees, other than the questions themselves, is defined here.
 
 The default prompt set, ``open2025``, is the one used by every canonical open-weight STEER-ME
-run on the results website (the 2025 ST-eval harness, ``vllm_model.py`` of 2025-05-19). The
+run (the 2025 evaluation harness, ``vllm_model.py`` of 2025-05-19). The
 strings were recovered verbatim from the raw result pickles and checked byte for byte against
-7,942 original prompts (steer-drafts ``parity.md``). Those runs used the ``shown`` and
+7,942 original prompts. Those runs used the ``shown`` and
 ``hidden`` formats; the prompts of ``mc``/``none`` (same answer instruction), ``free`` (the
 reasoning instruction alone; the answer is read from ``\\boxed{}``) and few-shot examples
 follow the same strings.

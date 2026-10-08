@@ -67,7 +67,7 @@ def _clean(x: Any) -> Any:
 def normalize_row(raw: dict[str, Any], setting: str | None = None, module: str | None = None) -> dict[str, Any]:
     """Map one dataset record to the canonical row.
 
-    Schema assumptions (staged packages of 2026-09-28, see steer-drafts/schema_spec.md):
+    Schema assumptions (staged packages of 2026-09-28):
     * ``setting``/``module`` are not columns in the staged files; they come from the file path
       (``setting``/``module`` arguments). If a future schema adds the columns, they win.
     * ``source``/``repair`` (staged) vs ``generator``/``seed`` (proposed) are provenance only
@@ -212,7 +212,7 @@ def _load_rows_hf(
     """Load from the Hugging Face Hub.
 
     TODO(release): untested until the datasets are published. Assumes the recommended final
-    layout (schema_spec.md section 4): one config per element plus ``default``, and
+    layout: one config per element plus ``default``, and
     ``setting``/``module`` as columns.
     """
     from inspect_ai.dataset import Sample, hf_dataset

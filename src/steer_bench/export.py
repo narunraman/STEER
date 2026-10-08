@@ -1,9 +1,9 @@
-"""Convert Inspect ``.eval`` logs of steer_bench tasks into steer-scoring's scored-cells table.
+"""Convert Inspect ``.eval`` logs of steer_bench tasks into the scored-cells table.
 
 Usage::
 
     python -m steer_bench.export LOG_OR_DIR [...] --out OUT_DIR
-    # or, once installed: steer-bench-export LOG_OR_DIR [...] --out OUT_DIR
+    # or: steer-bench export LOG_OR_DIR [...] --out OUT_DIR
 
 Writes ``OUT_DIR/cells.parquet`` (one row per run x element x question_format x car x
 adaptation x domain x type x perspective x difficulty, additive counts and ECE bin sums, the

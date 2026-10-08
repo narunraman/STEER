@@ -1,75 +1,95 @@
-<img src="steer_small.png" alt="STEER" width="120" align="right">
+<img src="steer_logo.svg" alt="STEER" width="64" align="right">
 
-# STEER and STEER-ME
+# STEER
 
-**STEER** (ICML 2024) tests whether large language models make economically rational choices. It
-breaks rationality into fine-grained elements, from arithmetic and probability through
-single-agent decisions, games and choices made on behalf of others, each tested with
-multiple-choice questions generated across domains, question types and perspectives.
+Benchmarks for the economic reasoning of language models, and the tools to run them.
 
-**STEER-ME** (NeurIPS 2025, Datasets and Benchmarks Track) extends this to microeconomic
-reasoning: deriving demand, comparative statics, production decisions, market equilibrium and
-welfare, with questions that need several steps of calculation.
+## STEER and STEER-ME
 
-This repository holds `steer-bench`, the [Inspect](https://inspect.aisi.org.uk) evaluation of
-both benchmarks: it runs a model on the questions, scores accuracy and calibration, converts
-results to the table behind the website's Evals page and makes per-element report cards.
+**STEER** is the name of the project and of its first benchmark (ICML 2024), which tests
+economic rationality broadly: the foundations (arithmetic, probability, logic), decisions under
+certainty and risk, strategic interaction in games, and choices made on behalf of others.
+**STEER-ME** is the second benchmark in the STEER family (NeurIPS 2025, Datasets and
+Benchmarks Track). It focuses on non-strategic microeconomic reasoning (demand, production,
+markets and welfare), with questions that need several steps of calculation.
 
-- Website: <https://steer-benchmark.cs.ubc.ca> (benchmarks, elements, results)
-- Papers: STEER, [arXiv 2402.09552](https://arxiv.org/abs/2402.09552);
-  STEER-ME, [arXiv 2502.13119](https://arxiv.org/abs/2502.13119)
-- Data (CC BY 4.0): [`narunraman/steer`](https://huggingface.co/datasets/narunraman/steer) and
-  [`narunraman/steer-me`](https://huggingface.co/datasets/narunraman/steer-me) on Hugging Face
-- Looking for the 2024 data? See tag [`v1-icml2024`](https://github.com/narunraman/STEER/tree/v1-icml2024).
+Both are organised the same way: a taxonomy of settings, modules and elements, where each
+element is one skill, and multiple-choice questions generated from templates, with answers
+computed by code.
+
+| | focus | elements / test questions | paper | dataset | browse |
+|---|---|---|---|---|---|
+| **STEER** | economic rationality: foundations, single-agent decisions, games, social choice and mechanism design | 58 / 16,300 | [arXiv 2402.09552](https://arxiv.org/abs/2402.09552) | [`narunraman/steer`](https://huggingface.co/datasets/narunraman/steer) | [/steer](https://steer-benchmark.cs.ubc.ca/steer) |
+| **STEER-ME** | non-strategic microeconomics: consumers, firms, markets, welfare | 61 / 21,500 | [arXiv 2502.13119](https://arxiv.org/abs/2502.13119) | [`narunraman/steer-me`](https://huggingface.co/datasets/narunraman/steer-me) | [/steer-me](https://steer-benchmark.cs.ubc.ca/steer-me) |
+
+## What's in this repository
+
+`steer-bench`, an [Inspect](https://inspect.aisi.org.uk) evaluation that runs a model on either
+benchmark, scores it and makes report cards. The tasks are `steer_bench/steer` and
+`steer_bench/steer_me`.
+
+- Website: <https://steer-benchmark.cs.ubc.ca>, to browse the elements; fresh questions come
+  from its [API](https://steer-benchmark.cs.ubc.ca/reference).
+- Datasets (CC BY 4.0): [`narunraman/steer`](https://huggingface.co/datasets/narunraman/steer)
+  and [`narunraman/steer-me`](https://huggingface.co/datasets/narunraman/steer-me) on Hugging Face.
+- The 2024 data of the STEER paper: tag [`v1-icml2024`](https://github.com/narunraman/STEER/tree/v1-icml2024).
 
 ## Quickstart
 
 ```bash
-uv tool install --with-executables-from inspect-ai git+https://github.com/narunraman/STEER
-#   add --with vllm for local open-weight models; or, in a virtualenv: pip install git+https://github.com/narunraman/STEER
-export OPENAI_API_KEY=...                                               # the usual Inspect provider variables
+uv tool install --with-executables-from inspect-ai "steer-bench[hf] @ git+https://github.com/narunraman/STEER"
 inspect eval steer_bench/steer_me --model openai/gpt-4o-mini -T element=consumer_surplus --limit 50
 steer-bench report logs/ --out card.html --out card.md
 ```
 
-The tasks are `steer_bench/steer` and `steer_bench/steer_me`. Any
-[Inspect provider](https://inspect.aisi.org.uk/providers.html) works; Inspect options such as
-`--limit`, `--sample-id`, `--max-connections` and `--epochs` apply. Logs go to `./logs`
-(`inspect view` opens them). More in [`examples/`](examples/): an API model, a Hugging Face model
-with vLLM in one Slurm job, a model served separately (for example with
-[slurm-llm](https://github.com/narunraman/slurm-llm)), and a report card.
+Set the provider's key first (for example `OPENAI_API_KEY`). In a virtualenv,
+`pip install "steer-bench[hf] @ git+https://github.com/narunraman/STEER"` works too; add
+`--with vllm` (or install `vllm`) for local open-weight models. Logs go to `./logs`
+(`inspect view` opens them). More in [`examples/`](examples/).
 
-Until the Hugging Face datasets are public, point the tasks at a local copy with
-`-T data_dir=PATH` or `STEER_BENCH_DATA_DIR=PATH` (a benchmark directory with `elements.csv` and
-`data/<setting>/<module>/<element>/test.parquet`, or a parent holding `STEER/` and `steer_me/`).
+## Running models
 
-## Open-weight models with vLLM
+**API models.** Any [Inspect provider](https://inspect.aisi.org.uk/providers.html) works, and
+Inspect options such as `--limit`, `--sample-id`, `--max-connections` and `--epochs` apply.
+
+**Open-weight models with vLLM.** Inspect can start vLLM itself, for example in one Slurm job
+([`examples/vllm_slurm.sbatch`](examples/vllm_slurm.sbatch)):
 
 ```bash
-# Inspect starts vLLM (one GPU job)
 inspect eval steer_bench/steer_me --model vllm/Qwen/Qwen2.5-7B-Instruct -M generation_config=vllm \
   -T format=shown -T answer_max_tokens=1 --max-tokens 4096 --max-connections 256
+```
 
-# or a server you started (any OpenAI-compatible vLLM endpoint)
+Or point it at a model you already serve behind an OpenAI-compatible endpoint
+([`examples/slurm_llm.sh`](examples/slurm_llm.sh)):
+
+```bash
 vllm serve Qwen/Qwen2.5-7B-Instruct --generation-config vllm --api-key local --port 8000 &
 VLLM_API_KEY=local inspect eval steer_bench/steer_me --model vllm/Qwen/Qwen2.5-7B-Instruct \
   --model-base-url http://127.0.0.1:8000/v1 -T format=shown -T answer_max_tokens=1 --max-tokens 4096
 ```
 
-**Use `--generation-config vllm`** (or `-M generation_config=vllm` when Inspect starts the
-server). Otherwise vLLM ≥ 0.8 applies the sampling defaults in the model's
-`generation_config.json` (for Qwen, `repetition_penalty=1.05`) and the numbers are not comparable
-with the website. The website's open-weight runs used the default prompts, temperature 0 (the
-task default), `--max-tokens 4096` for reasoning and `-T answer_max_tokens=1 -T top_logprobs=20`
-for the answer; a parity check on Qwen2.5-7B-Instruct reproduced them within decoding noise.
+[slurm-llm](https://github.com/narunraman/slurm-llm) is one way to serve models on a Slurm
+cluster behind such an endpoint.
 
-**Logprobs.** Calibration metrics (ECE, Brier, EPA) need the probabilities of the option
-letters, which the task requests on the answer turn (top 20). vLLM, SGLang, Hugging Face,
-llama.cpp, Together, Grok and OpenAI non-reasoning models return them. Anthropic, Bedrock and
-Mistral do not: those runs report accuracy only and the calibration metrics are NaN. OpenAI
-reasoning models reject the request: run them with `-T logprobs=false`.
+> **To match the reference runs**
+>
+> - `--generation-config vllm` (or `-M generation_config=vllm` when Inspect starts the server).
+>   Otherwise vLLM ≥ 0.8 applies the sampling defaults in the model's `generation_config.json`
+>   (for Qwen, `repetition_penalty=1.05`) and the numbers are not comparable.
+> - Temperature 0 (the task default) and the default prompts.
+> - Logprobs on the answer turn, top 20 (the defaults).
+> - `--max-tokens 4096` for the reasoning and `-T answer_max_tokens=1` for the answer.
+>
+> These are the settings of the 2025 open-weight STEER-ME runs; a parity check on
+> Qwen2.5-7B-Instruct reproduced them within decoding noise.
 
-## Formats and task arguments
+**Logprobs.** The calibration metrics need the probabilities of the option letters. vLLM,
+SGLang, Hugging Face, llama.cpp, Together, Grok and OpenAI non-reasoning models return them.
+Anthropic, Bedrock and Mistral do not: those runs report accuracy only, and the calibration
+metrics are NaN. OpenAI reasoning models reject the request: run them with `-T logprobs=false`.
+
+## What is measured
 
 | `-T format=` | the model sees |
 |---|---|
@@ -79,12 +99,39 @@ reasoning models reject the request: run them with `-T logprobs=false`.
 | `none` | as `mc`, with one option replaced by "No other option is correct." (the correct one in 1 of every n questions) |
 | `free` | no options; the number in the last `\boxed{}` is compared with the answer at `sig_figs` significant figures (numeric elements only) |
 
-Multi-part questions are one sample, asked in sequence in one conversation with option letters
-continuing across parts; consistency-graded elements are correct when the chosen options satisfy
-the element's rule.
+**Metrics**, per element and overall: `exact_match`; `normalized_accuracy` (+1 correct,
+−1/(n−1) wrong, so random guessing scores 0); `no_answer_rate` (unanswered questions are left
+out of the others); and, with logprobs, `ece` (10 bins), `brier` and `epa` (mean probability on
+the correct option). Definitions are on the website:
+[Scoring](https://steer-benchmark.cs.ubc.ca/scoring),
+[Question formats](https://steer-benchmark.cs.ubc.ca/formats),
+[Metrics](https://steer-benchmark.cs.ubc.ca/metrics).
+
+## Report cards and results
+
+```bash
+steer-bench report logs/ --out card.html --out card.md   # one model, one benchmark
+steer-bench export logs/ --out cells/                    # cells.parquet, models.parquet, provenance.json
+```
+
+A **report card** shows, for every format run, a summary (accuracy, normalized accuracy,
+no-answer rate, calibration), a heatmap of normalized accuracy for every element, grouped by
+setting and module in the benchmark's order with module and setting averages, and all metrics
+per element with the element's worst domain. The HTML is a single self-contained file.
+
+<img src="docs/report_card.png" alt="Top of a report card: summary, scores by setting and the start of the element heatmap" width="700">
+
+`steer-bench export` writes the **scored-cells table**: one row per model × element × format ×
+prompt settings × domain × type × perspective × difficulty, with additive counts. Report cards
+can be made from logs or from this table, with identical numbers.
+
+## Reference
+
+### Task arguments
 
 | argument | default | meaning |
 |---|---|---|
+| `format` | `mc` | question format (above) |
 | `element`, `module`, `setting` | all released | a name or comma-separated list (slug or full name) |
 | `prompts` | `open2025` | prompt set: built-in name or a JSON file (below) |
 | `shots` | `0` | solved examples prepended to the first question |
@@ -92,18 +139,14 @@ the element's rule.
 | `prob_mode` | `condition` | `condition` (renormalize over the letters) or `mix` (blend in the missing mass uniformly) |
 | `answer_max_tokens` | none | `max_tokens` of the answer turn |
 | `sig_figs`, `seed` | `3`, `42` | free-text precision; seed for `none` and few-shot selection |
-| `data_dir`, `include_held` | env, `false` | local data; include elements held back from release |
+| `data_dir` | Hugging Face | a local copy of the data instead (also `STEER_BENCH_DATA_DIR`) |
+| `include_held` | `false` | also load superseded STEER elements that are not in the release, if the local data has them |
 
-**Metrics**, per element and overall: `exact_match`; `normalized_accuracy` (+1 correct,
-−1/(n−1) wrong, so random guessing scores 0); `no_answer_rate` (unanswered questions are left
-out of the others); and with logprobs `ece` (10 bins), `brier` and `epa` (mean probability on the
-correct option). Definitions: <https://steer-benchmark.cs.ubc.ca/scoring>.
-
-## Prompts
+### Prompts
 
 All instructions are in one dict, `PROMPT_SETS` in
 [`src/steer_bench/prompts.py`](src/steer_bench/prompts.py). The default, `open2025`, is the set
-used by the open-weight runs on the website:
+used by the 2025 open-weight STEER-ME runs:
 
 | key | text |
 |---|---|
@@ -120,36 +163,26 @@ To use your own wording, write a JSON file with any of these keys (the rest stay
 {"reasoning": "\nThink it through step by step.", "answer": "\nReply with the letter of the correct option only.\nAnswer:"}
 ```
 
-The set's name and a hash of its strings are stored in the log and in the converted results, so
+The set's name and a hash of its strings are stored in the log and in the exported table, so
 runs with different prompts are never mixed. Only the default set gives numbers comparable with
-the website.
+the reference runs.
 
-## Results, report cards and the website
+### Multi-part and consistency-graded questions
 
-```bash
-steer-bench report logs/ --out card.html --out card.md   # one model, one benchmark
-steer-bench export logs/ --out cells/                    # cells.parquet, models.parquet, provenance.json
-```
+Multi-part questions are one sample, asked in sequence in one conversation, with option letters
+continuing across parts. Consistency-graded elements are correct when the chosen options satisfy
+the element's rule.
 
-A **report card** shows, for every format run, a summary (accuracy, normalized accuracy,
-no-answer rate, calibration), a heatmap of normalized accuracy for every element grouped by
-setting and module in the benchmark's order, with module and setting averages, and all metrics
-per element with the element's worst domain. The HTML is a single self-contained file.
-
-`steer-bench export` writes the **scored-cells table** that the
-[Evals page](https://steer-benchmark.cs.ubc.ca/evals) is built from: one row per model × element
-× format × prompt settings × domain × type × perspective × difficulty, with additive counts (the
-page's "No CoT", "Options shown", "Options hidden" and "NOTA" are `mc`, `shown`, `hidden` and
-`none`). Report cards can be made from logs or from this table, with identical numbers.
-
-## Development
+### Development
 
 ```bash
 uv sync
 uv run pytest            # mockllm only; no model is called
 ```
 
-## Citation
+## Citation and license
+
+If you use STEER or STEER-ME, please cite the paper for the benchmark you used.
 
 ```bibtex
 @inproceedings{ramansteer,

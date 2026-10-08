@@ -1,7 +1,7 @@
 [project]
 name = "steer-bench"
 dynamic = ["version"]
-description = "Inspect evaluations for the STEER and STEER-ME economic-rationality benchmarks"
+description = "Inspect evaluation of STEER and STEER-ME, benchmarks for the economic reasoning of language models"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
@@ -18,7 +18,7 @@ Homepage = "https://steer-benchmark.cs.ubc.ca"
 Repository = "https://github.com/narunraman/STEER"
 
 [project.optional-dependencies]
-# Loading from the Hugging Face Hub (once the datasets are published).
+# Loading the datasets from the Hugging Face Hub (the default data source).
 hf = ["datasets>=2.18"]
 
 [project.scripts]
