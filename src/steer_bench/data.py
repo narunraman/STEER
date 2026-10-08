@@ -33,7 +33,7 @@ BENCHMARKS = ("steer", "steer_me")
 HF_REPOS: dict[str, str] = {"steer": "narunraman/steer", "steer_me": "narunraman/steer_me"}
 # Commit SHAs of the dataset repositories this package version is evaluated on. None means the
 # latest revision (with a warning); tests/test_hub.py fails for a release version with any None.
-HF_REVISIONS: dict[str, str | None] = {"steer": None, "steer_me": None}
+HF_REVISIONS: dict[str, str | None] = {"steer": "9e384e4b77ce9baa7cbffd99ae2b7dc550506027", "steer_me": "06e70f97b0df648aa7d6540927028d376dab8fd2"}
 
 DATA_DIR_ENV = "STEER_BENCH_DATA_DIR"
 
