@@ -1,7 +1,6 @@
-"""Pure scoring functions (no Inspect objects), mirroring steer-scoring ``score.py``.
+"""Pure scoring functions (no Inspect objects).
 
-Definitions follow ``steer-scoring`` (desktop ``~/UBC/steer-scoring``, README "What counts as
-the model's answer" and ``score.py:score_row``):
+Definitions (the same as in the scoring behind the results website):
 
 * option probabilities: tokens at the answer position, cleaned of non-alphanumerics, kept if
   they are a valid option letter, max over duplicates (``"C"`` vs ``" C"``), ``exp(logprob)``;
@@ -28,7 +27,7 @@ _NON_ALNUM = re.compile(r"[^A-Za-z0-9]")
 
 
 def clean_token(tok: str) -> str:
-    # steer-scoring keeps spaces ([^a-zA-Z0-9 ]); we also drop them so " C" counts as "C".
+    # spaces are dropped too, so " C" counts as "C"
     return _NON_ALNUM.sub("", tok)
 
 
@@ -78,7 +77,7 @@ def letter_probs(top: list[tuple[str, float]], letters: list[str]) -> dict[str, 
             best[c] = max(best.get(c, -math.inf), lp)
     raw = {k: math.exp(v) for k, v in best.items()}
     s = sum(raw.values())
-    if s > 1.0:  # numerical guard, as steer-scoring
+    if s > 1.0:  # numerical guard
         raw = {k: v / s for k, v in raw.items()}
     return raw
 
@@ -108,7 +107,7 @@ def distribution_stats(raw: dict[str, float], letters: list[str], gold: int) -> 
 
 
 def ece_bin(conf: float) -> int:
-    """Bin i covers [i/10, (i+1)/10); conf == 1.0 goes in the top bin (steer-scoring)."""
+    """Bin i covers [i/10, (i+1)/10); conf == 1.0 goes in the top bin."""
     return min(int(conf * N_BINS), N_BINS - 1)
 
 

@@ -1,8 +1,8 @@
-"""List-level metrics over the dict-valued scores (definitions as steer-scoring ``metrics.py``).
+"""List-level metrics over the dict-valued scores (the definitions used by the results website).
 
 All means skip NaN, so:
 * accuracy metrics are over answered questions (``n``; unanswered ones are reported by
-  ``no_answer_rate``), as steer-scoring drops "No Answer" rows;
+  ``no_answer_rate``), as the results website does;
 * calibration metrics are over answered questions that have option probabilities. A run
   whose provider returns no logprobs gets NaN, never a made-up value.
 """

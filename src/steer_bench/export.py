@@ -5,13 +5,32 @@ Usage::
     python -m steer_bench.export LOG_OR_DIR [...] --out OUT_DIR
     # or: steer-bench export LOG_OR_DIR [...] --out OUT_DIR
 
-Writes ``OUT_DIR/cells.parquet`` (one row per run x element x question_format x car x
-adaptation x domain x type x perspective x difficulty, additive counts and ECE bin sums, the
-same columns as steer-scoring ``aggregate.STAT_COLS`` plus ``n_prob``), ``models.parquet`` (one
-row per run) and ``provenance.json``.
+Writes three files to ``OUT_DIR``:
 
-Column meanings are those of steer-scoring (README "The scored-cells table"); the mapping from
-this package's formats is::
+* ``cells.parquet``, the scored-cells table: one row per cell, a cell being one combination of
+  the key columns ``run_id`` (``inspect/<model>``), ``element``, ``question_format``, ``car``,
+  ``adaptation``, ``domain``, ``type``, ``perspective`` and ``difficulty``. The other columns are
+  additive counts and sums over the questions in the cell, so cells from different runs or logs
+  can be concatenated and any metric recomputed at any level of aggregation by summing first:
+
+  - ``n_rows`` questions; ``n_no_answer`` without a usable answer; ``n`` answered (the
+    denominator of the accuracy metrics); ``n_prob`` answered with option probabilities (the
+    denominator of the calibration metrics; 0 when the provider returned no logprobs);
+  - ``n_correct`` (exact match = ``n_correct / n``), ``sum_norm`` (normalized accuracy =
+    ``sum_norm / n``), ``sum_norm_strict`` (the same with unanswered questions counted wrong);
+  - ``sum_p_correct_{cond,mix}`` (EPA), ``sum_brier_{cond,mix}``, ``sum_conf_{cond,mix}``,
+    ``n_top_correct``, ``sum_invalid_mass`` and ``n_alpha_zero`` for the two ways of handling
+    probability outside the option letters (conditioning, mixing);
+  - ``ece_{cond,mix}_{n,conf,acc}{0..9}``: per confidence bin [i/10, (i+1)/10), the count, the
+    summed confidence and the number with the top option correct; ECE =
+    ``sum_i |acc_i - conf_i| / n_prob``;
+  - ``n_timed`` and ``sum_inference_time`` (seconds); ``n_last_turn`` is always 0 here.
+
+* ``models.parquet``: one row per run (model, benchmarks, prompt sets, package and Inspect
+  versions, eval ids, dates, whether logprobs were present).
+* ``provenance.json``: the command, the logs read or skipped, and the number of cells.
+
+Formats map to the key columns as::
 
     format   question_format  car    adaptation expl=
     mc       shown_options    False  0
@@ -20,13 +39,10 @@ this package's formats is::
     hidden   hidden_options   False  3
     free     no_options       False  3
 
-(expl=3 is the unrestricted reasoning instruction, as recorded for the 2025 open-model runs.)
-``adaptation`` ends with ``;prompts=<name>@<hash>``: the prompt set and a hash of its strings
-(``unknown`` for logs written before prompt sets were recorded).
-
-Extra column ``n_prob``: answered rows that had option probabilities. steer-scoring always has
-a distribution for a valid row, so it divides calibration sums by ``n``; for Inspect runs use
-``n_prob`` (``n_prob == 0`` means the provider returned no logprobs: hide calibration).
+``car`` marks the "No other option is correct" variant and ``expl=3`` the reasoning formats.
+``adaptation`` records shots, reasoning and decoding, and ends with ``;prompts=<name>@<hash>``:
+the prompt set and a hash of its strings (``unknown`` for logs written before prompt sets were
+recorded).
 """
 
 from __future__ import annotations
@@ -45,7 +61,7 @@ from .scoring import N_BINS, ece_bin
 KEYS = ["run_id", "element", "question_format", "car", "adaptation",
         "domain", "type", "perspective", "difficulty"]
 
-# per-question score key -> cell column, summed over answered rows (steer-scoring _VALID_SUMS)
+# per-question score key -> cell column, summed over answered rows
 _VALID_SUMS = {
     "correct": "n_correct",
     "norm": "sum_norm",
@@ -61,7 +77,6 @@ _VALID_SUMS = {
     "last_turn": "n_last_turn",
 }
 
-# identical to steer-scoring aggregate.STAT_COLS
 STAT_COLS = (["n_rows", "n_no_answer", "n", "sum_norm_strict"] + list(_VALID_SUMS.values())
              + ["n_timed", "sum_inference_time"]
              + [f"ece_{v}_{s}{i}" for v in ("cond", "mix") for s in ("n", "conf", "acc") for i in range(N_BINS)])
@@ -227,7 +242,7 @@ def cells_from_logs(paths: Iterable[str], tasks: Iterable[str] | None = None) ->
     else:
         cells = pd.DataFrame(columns=KEYS + STAT_COLS + EXTRA_COLS)
     for c in STAT_COLS + EXTRA_COLS:
-        # same integer columns as steer-scoring aggregate()
+        # counts are int32, sums float64
         is_int = c.startswith(("n", "ece_cond_n", "ece_mix_n")) or "_acc" in c
         cells[c] = cells[c].astype("int32" if is_int else "float64")
     # has_logprobs: any answered row with option probabilities
