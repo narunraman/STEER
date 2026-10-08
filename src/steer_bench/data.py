@@ -30,7 +30,7 @@ from typing import Any
 
 BENCHMARKS = ("steer", "steer_me")
 
-HF_REPOS: dict[str, str] = {"steer": "narunraman/steer", "steer_me": "narunraman/steer-me"}
+HF_REPOS: dict[str, str] = {"steer": "narunraman/steer", "steer_me": "narunraman/steer_me"}
 # Commit SHAs of the dataset repositories this package version is evaluated on. None means the
 # latest revision (with a warning); tests/test_hub.py fails for a release version with any None.
 HF_REVISIONS: dict[str, str | None] = {"steer": None, "steer_me": None}

@@ -77,7 +77,7 @@ def test_hub_loader_uses_the_pinned_revision(monkeypatch):
     monkeypatch.setitem(D.HF_REVISIONS, "steer_me", None)
     with pytest.warns(UserWarning, match="no pinned revision"):
         D.load_rows("steer_me")
-    assert calls == [("narunraman/steer-me", "default", "test", None)]
+    assert calls == [("narunraman/steer_me", "default", "test", None)]
 
 
 def test_revisions_pinned_for_a_release_version():
