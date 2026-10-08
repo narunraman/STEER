@@ -1,16 +1,19 @@
 """Loading STEER / STEER-ME rows and packing them into Inspect samples.
 
-Every assumption about the dataset schema lives in this module, in ``normalize_row`` and
-``_local_files``. The rest of the package only sees the canonical row dict that
+Every assumption about the dataset schema lives in this module, in ``normalize_row`` and the
+source functions below. The rest of the package only sees the canonical row dict that
 ``normalize_row`` returns (keys in ``ROW_KEYS``).
 
 Data sources:
 
-* ``data_dir`` (or the ``STEER_BENCH_DATA_DIR`` environment variable): a staged copy of the
-  Hugging Face package, laid out as ``<dir>/elements.csv`` and
-  ``<dir>/data/<setting>/<module>/<element>/<split>.parquet``. ``data_dir`` may point at the
-  package itself or at a parent that holds ``STEER/`` and ``steer_me/``.
-* Otherwise the Hugging Face Hub, at ``HF_REPOS`` / ``HF_REVISIONS`` (not published yet).
+* By default, the Hugging Face Hub: ``HF_REPOS`` at the commits pinned in ``HF_REVISIONS``. Each
+  dataset has one config per element (``data/<element>/{test,few_shot}.parquet``) plus
+  ``default`` (all elements); ``setting`` and ``module`` are columns.
+* ``data_dir`` (or the ``STEER_BENCH_DATA_DIR`` environment variable): a local copy of a dataset
+  repository, i.e. a directory with ``elements.csv`` and ``data/<element>/<split>.parquet``, or a
+  parent holding one directory per benchmark (``steer``, ``steer-me``; case, ``-`` and ``_`` are
+  ignored). The pre-release staging layout ``data/<setting>/<module>/<element>/<split>.parquet``
+  is also read.
 """
 
 from __future__ import annotations
@@ -27,10 +30,10 @@ from typing import Any
 
 BENCHMARKS = ("steer", "steer_me")
 
-# TODO(release): the Hugging Face datasets are not published yet. Fill in the repo ids and pin
-# each revision to a commit SHA of the published dataset before registering the eval.
 HF_REPOS: dict[str, str] = {"steer": "narunraman/steer", "steer_me": "narunraman/steer-me"}
-HF_REVISIONS: dict[str, str | None] = {"steer": None, "steer_me": None}  # TODO(release): commit SHAs
+# Commit SHAs of the dataset repositories this package version is evaluated on. None means the
+# latest revision (with a warning); tests/test_hub.py fails for a release version with any None.
+HF_REVISIONS: dict[str, str | None] = {"steer": None, "steer_me": None}
 
 DATA_DIR_ENV = "STEER_BENCH_DATA_DIR"
 
@@ -115,20 +118,30 @@ def _as_list(x: str | Iterable[str] | None) -> list[str] | None:
     return items or None
 
 
+def _norm_name(name: str) -> str:
+    return name.lower().replace("-", "_")
+
+
+def _slug(name: str | None) -> str | None:
+    if not name:
+        return None
+    return "_".join("".join(c if c.isalnum() else " " for c in name.lower()).split())
+
+
 def resolve_data_dir(benchmark: str, data_dir: str | None) -> Path | None:
-    """The staged package directory for ``benchmark``, or None to use the Hub."""
+    """The local dataset directory for ``benchmark``, or None to use the Hub."""
     d = data_dir or os.environ.get(DATA_DIR_ENV)
     if not d:
         return None
     p = Path(d).expanduser()
     if (p / "elements.csv").exists():
         return p
-    for child in p.iterdir() if p.is_dir() else []:
-        if child.is_dir() and child.name.lower() == benchmark and (child / "elements.csv").exists():
+    for child in sorted(p.iterdir()) if p.is_dir() else []:
+        if child.is_dir() and _norm_name(child.name) == benchmark and (child / "elements.csv").exists():
             return child
     raise FileNotFoundError(
-        f"{p} is neither a {benchmark} package (no elements.csv) nor a directory containing one "
-        f"(expected a '{benchmark}' subdirectory, case-insensitive)."
+        f"{p} is neither a {benchmark} dataset directory (no elements.csv) nor a directory containing "
+        f"one (expected a subdirectory named like '{benchmark.replace('_', '-')}')."
     )
 
 
@@ -138,19 +151,27 @@ def _element_table(pkg: Path) -> dict[str, dict[str, str]]:
 
 
 def _matches(value: str | None, names: Iterable[str | None], wanted: list[str] | None) -> bool:
+    """True if ``wanted`` is None or names one of ``value``/``names`` (as given or as a slug)."""
     if wanted is None:
         return True
-    names = {n.lower() for n in names if n}
-    return any(w.lower() in names for w in wanted) or (value or "").lower() in {w.lower() for w in wanted}
+    have = {n.lower() for n in [value, *names] if n} | {_slug(n) for n in [value, *names] if n}
+    return any(w.lower() in have or _slug(w) in have for w in wanted)
 
 
-def _local_files(pkg: Path, split: str) -> list[tuple[str, str, str, Path]]:
-    """(element, setting_slug, module_slug, path) for every ``<split>.parquet`` in the package."""
-    out = []
-    for path in sorted(pkg.glob(f"data/*/*/*/{split}.parquet")):
-        element, module, setting = path.parent.name, path.parent.parent.name, path.parent.parent.parent.name
-        out.append((element, setting, module, path))
-    return out
+def _local_files(pkg: Path, split: str) -> list[tuple[str, Path]]:
+    """(element, path) for every ``<split>.parquet``: ``data/<element>/`` (release layout) or
+    ``data/<setting>/<module>/<element>/`` (pre-release staging layout)."""
+    files = sorted(pkg.glob(f"data/*/{split}.parquet")) + sorted(pkg.glob(f"data/*/*/*/{split}.parquet"))
+    return [(path.parent.name, path) for path in files]
+
+
+def _keep(row: dict[str, Any], elements: list[str] | None, modules: list[str] | None,
+          settings: list[str] | None, held: set[str]) -> bool:
+    if elements and row["element"] not in elements:
+        return False
+    if row["element"] in held:
+        return False
+    return _matches(row["module"], [], modules) and _matches(row["setting"], [], settings)
 
 
 def load_rows(
@@ -165,8 +186,8 @@ def load_rows(
     """Canonical rows of one split, filtered by element / module / setting.
 
     ``element``, ``module`` and ``setting`` take a name or a comma-separated list. Module and
-    setting match either the slug (``comparative_statics_of_demand``) or the full name
-    (``Comparative Statics of Demand``), case-insensitively.
+    setting match the full name (``Comparative Statics of Demand``) or its slug
+    (``comparative_statics_of_demand``), case-insensitively.
     """
     if benchmark not in BENCHMARKS:
         raise ValueError(f"benchmark must be one of {BENCHMARKS}, got {benchmark!r}")
@@ -175,68 +196,76 @@ def load_rows(
 
     pkg = resolve_data_dir(benchmark, data_dir)
     if pkg is None:
-        return _load_rows_hf(benchmark, split, elements, modules, settings, held)
+        return load_rows_hub(benchmark, split, elements, modules, settings, held)
 
     import pyarrow.parquet as pq
 
     table = _element_table(pkg)
-    known = {e for e, _, _, _ in _local_files(pkg, "test")} | set(table)
+    known = {e for e, _ in _local_files(pkg, "test")} | set(table)
     if elements:
         unknown = [e for e in elements if e not in known]
         if unknown:
             raise ValueError(f"unknown {benchmark} element(s): {unknown}")
     rows: list[dict[str, Any]] = []
-    for el, setting_slug, module_slug, path in _local_files(pkg, split):
+    for el, path in _local_files(pkg, split):
+        if (elements and el not in elements) or el in held:
+            continue
         meta = table.get(el, {})
-        if elements and el not in elements:
-            continue
-        if el in held:
-            continue
-        if not _matches(module_slug, [meta.get("module"), meta.get("module_slug")], modules):
-            continue
-        if not _matches(setting_slug, [meta.get("setting"), meta.get("setting_slug")], settings):
-            continue
+        # setting/module: columns in the release files; else elements.csv; else the staging path
+        staged = path.parent.parent.parent.name if path.parent.parent.name != "data" else None
+        default_setting = meta.get("setting") or staged
+        default_module = meta.get("module") or (path.parent.parent.name if staged else None)
+        extra_modules = [meta.get("module_slug"), path.parent.parent.name if staged else None]
+        extra_settings = [meta.get("setting_slug"), staged]
         for raw in pq.read_table(path).to_pylist():
-            rows.append(normalize_row(raw, setting=setting_slug, module=module_slug))
+            row = normalize_row(raw, setting=default_setting, module=default_module)
+            if (_matches(row["module"], extra_modules, modules)
+                    and _matches(row["setting"], extra_settings, settings)):
+                rows.append(row)
     return rows
 
 
-def _load_rows_hf(
+def load_rows_hub(
     benchmark: str,
-    split: str,
-    elements: list[str] | None,
-    modules: list[str] | None,
-    settings: list[str] | None,
-    held: set[str],
+    split: str = "test",
+    elements: list[str] | None = None,
+    modules: list[str] | None = None,
+    settings: list[str] | None = None,
+    held: set[str] | None = None,
+    repo: str | None = None,
+    revision: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Load from the Hugging Face Hub.
+    """Rows from the Hugging Face dataset (``repo``/``revision`` default to ``HF_REPOS`` and
+    ``HF_REVISIONS``; ``repo`` may also be a local copy of the repository).
 
-    TODO(release): untested until the datasets are published. Assumes the recommended final
-    layout: one config per element plus ``default``, and
-    ``setting``/``module`` as columns.
+    Named elements are loaded from their own configs; otherwise the ``default`` config. An
+    element without a ``few_shot`` split contributes no few-shot rows.
     """
-    from inspect_ai.dataset import Sample, hf_dataset
+    import warnings
 
-    repo, revision = HF_REPOS[benchmark], HF_REVISIONS[benchmark]
-    if revision is None:
-        raise RuntimeError(
-            f"The {benchmark} dataset is not published on Hugging Face yet ({repo}). Point "
-            f"-T data_dir=... or ${DATA_DIR_ENV} at a staged copy of the package."
-        )
-    configs = elements or ["default"]
+    import datasets
+
+    repo = repo or HF_REPOS[benchmark]
+    if revision is None and repo == HF_REPOS[benchmark]:
+        revision = HF_REVISIONS[benchmark]
+        if revision is None:
+            warnings.warn(f"{repo}: no pinned revision in steer_bench.data.HF_REVISIONS; "
+                          "loading the latest one", stacklevel=2)
+    held = held or set()
     rows: list[dict[str, Any]] = []
-    for config in configs:
-        ds = hf_dataset(
-            repo, split=split, name=config, revision=revision,
-            sample_fields=lambda rec: Sample(input="-", metadata={"raw": rec}),
-        )
-        for s in ds:
-            row = normalize_row((s.metadata or {})["raw"])
-            if row["element"] in held:
-                continue
-            if not _matches(row["module"], [], modules) or not _matches(row["setting"], [], settings):
-                continue
-            rows.append(row)
+    for config in elements or ["default"]:
+        try:
+            ds = datasets.load_dataset(repo, name=config, split=split, revision=revision)
+        except ValueError as e:
+            if split != "test" and "split" in str(e).lower():
+                continue  # this element has no few-shot examples
+            if elements and ("config" in str(e).lower() or "builderconfig" in str(e).lower()):
+                raise ValueError(f"unknown {benchmark} element {config!r} ({repo})") from e
+            raise
+        for raw in ds:
+            row = normalize_row(raw)
+            if _keep(row, elements, modules, settings, held):
+                rows.append(row)
     return rows
 
 

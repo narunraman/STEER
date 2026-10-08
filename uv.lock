@@ -2459,14 +2459,10 @@ wheels = [
 name = "steer-bench"
 source = { editable = "." }
 dependencies = [
+    { name = "datasets" },
     { name = "inspect-ai" },
     { name = "pandas" },
     { name = "pyarrow" },
-]
-
-[package.optional-dependencies]
-hf = [
-    { name = "datasets" },
 ]
 
 [package.dev-dependencies]
@@ -2477,12 +2473,11 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "datasets", marker = "extra == 'hf'", specifier = ">=2.18" },
+    { name = "datasets", specifier = ">=2.18" },
     { name = "inspect-ai", specifier = ">=0.3.276" },
     { name = "pandas", specifier = ">=2.0" },
     { name = "pyarrow", specifier = ">=14" },
 ]
-provides-extras = ["hf"]
 
 [package.metadata.requires-dev]
 dev = [

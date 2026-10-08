@@ -110,6 +110,49 @@ def _schema() -> pa.Schema:
     ])
 
 
+def write_release(root: Path, name: str = "steer-me", no_few_shot: tuple[str, ...] = ("words",)) -> Path:
+    """The published layout: ``data/<element>/{test,few_shot}.parquet`` with setting/module as
+    columns, ``elements.csv``, and a README whose YAML header declares one config per element
+    plus ``default`` (as on the Hub). ``no_few_shot`` elements have no few_shot file."""
+    pkg = root / name
+    rows = make_rows()
+    schema = _schema().append(pa.field("setting", pa.string())).append(pa.field("module", pa.string()))
+    configs = ["configs:", "- config_name: default", "  default: true", "  data_files:",
+               "  - split: test", "    path: data/*/test.parquet",
+               "  - split: few_shot", "    path: data/*/few_shot.parquet"]
+    with open(_mk(pkg) / "elements.csv", "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["element", "display_name", "setting", "module"])
+        for el, (_, sn, _, mn) in ELEMENTS.items():
+            w.writerow([el, el.title(), sn, mn])
+    for el, (_, sn, _, mn) in ELEMENTS.items():
+        d = pkg / "data" / el
+        d.mkdir(parents=True, exist_ok=True)
+        configs += [f"- config_name: {el}", "  data_files:", "  - split: test", f"    path: data/{el}/test.parquet"]
+        for split, rs in rows[el].items():
+            if split == "few_shot" and (el in no_few_shot or not rs):
+                continue
+            if split == "few_shot":
+                configs += ["  - split: few_shot", f"    path: data/{el}/few_shot.parquet"]
+            rs = [dict(r, setting=sn, module=mn) for r in rs]
+            pq.write_table(pa.Table.from_pylist(rs, schema=schema), d / f"{split}.parquet")
+    (pkg / "README.md").write_text("---\nlicense: cc-by-4.0\n" + "\n".join(configs) + "\n---\n# test dataset\n")
+    return pkg
+
+
+def _mk(p: Path) -> Path:
+    p.mkdir(parents=True, exist_ok=True)
+    return p
+
+
+@pytest.fixture(scope="session")
+def release_root(tmp_path_factory) -> Path:
+    root = tmp_path_factory.mktemp("release")
+    write_release(root, "steer-me")
+    write_release(root, "steer")
+    return root
+
+
 @pytest.fixture(scope="session")
 def data_root(tmp_path_factory) -> Path:
     root = tmp_path_factory.mktemp("hf")

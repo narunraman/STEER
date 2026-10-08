@@ -1,8 +1,8 @@
-<img src="steer_logo.svg" alt="STEER" width="64" align="right">
+<img src="steer_logo.svg" alt="STEER" width="64" align="left">
 
 # STEER
 
-Benchmarks for the economic reasoning of language models, and the tools to run them.
+This repo contains benchmarks on economic reasoning 
 
 ## STEER and STEER-ME
 
@@ -37,13 +37,13 @@ benchmark, scores it and makes report cards. The tasks are `steer_bench/steer` a
 ## Quickstart
 
 ```bash
-uv tool install --with-executables-from inspect-ai "steer-bench[hf] @ git+https://github.com/narunraman/STEER"
+uv tool install --with-executables-from inspect-ai git+https://github.com/narunraman/STEER
 inspect eval steer_bench/steer_me --model openai/gpt-4o-mini -T element=consumer_surplus --limit 50
 steer-bench report logs/ --out card.html --out card.md
 ```
 
 Set the provider's key first (for example `OPENAI_API_KEY`). In a virtualenv,
-`pip install "steer-bench[hf] @ git+https://github.com/narunraman/STEER"` works too; add
+`pip install git+https://github.com/narunraman/STEER` works too; add
 `--with vllm` (or install `vllm`) for local open-weight models. Logs go to `./logs`
 (`inspect view` opens them). More in [`examples/`](examples/).
 

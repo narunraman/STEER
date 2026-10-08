@@ -33,8 +33,9 @@ def test_filter_module_and_setting(data_root):
     assert _elements(s) == {"pairs": 3, "multi": 2}
     s = build_samples("steer_me", setting="Single Agent", module="axioms", data_dir=str(data_root))
     assert _elements(s) == {"pairs": 3}
-    assert {x.metadata["setting"] for x in s} == {"single_agent"}
-    assert {x.metadata["module"] for x in s} == {"axioms"}
+    # names come from elements.csv (the release files have them as columns)
+    assert {x.metadata["setting"] for x in s} == {"Single Agent"}
+    assert {x.metadata["module"] for x in s} == {"Utility Axioms"}
 
 
 def test_held_elements_excluded_unless_named(data_root):

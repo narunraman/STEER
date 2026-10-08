@@ -8,6 +8,7 @@ license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Narun Raman" }]
 dependencies = [
+    "datasets>=2.18",
     "inspect-ai>=0.3.276",
     "pandas>=2.0",
     "pyarrow>=14",
@@ -17,9 +18,6 @@ dependencies = [
 Homepage = "https://steer-benchmark.cs.ubc.ca"
 Repository = "https://github.com/narunraman/STEER"
 
-[project.optional-dependencies]
-# Loading the datasets from the Hugging Face Hub (the default data source).
-hf = ["datasets>=2.18"]
 
 [project.scripts]
 steer-bench = "steer_bench.cli:main"
