@@ -56,7 +56,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .scoring import N_BINS, ece_bin
+from .scoring import N_BINS, ece_bin, letter_from_logprobs, parse_letter
 
 KEYS = ["run_id", "element", "question_format", "car", "adaptation",
         "domain", "type", "perspective", "difficulty"]
@@ -167,10 +167,43 @@ def sample_row(value: dict[str, Any], metadata: dict[str, Any], seconds: float |
     return r
 
 
-def cells_from_logs(paths: Iterable[str], tasks: Iterable[str] | None = None) -> tuple[Any, Any, dict[str, Any]]:
+# assistant replies per part, the last being the answer (see prompts.turns_for_part)
+_TURNS = {"mc": 1, "none": 1, "free": 1, "shown": 2, "hidden": 2}
+
+
+def rescore(md: dict[str, Any], replies: list[str], fmt: str, from_logprobs: bool,
+            sig_figs: int = 3) -> tuple[dict[str, float], int]:
+    """Score a logged sample again from its full replies with the current parser.
+
+    Returns (score value, number of parts whose letter came from the letter probabilities).
+    ``from_logprobs``: when the text names no letter, take the most probable valid letter at the
+    answer position, if the log recorded the probabilities.
+    """
+    from .scorer import score_group
+
+    k = _TURNS[fmt]
+    resp, n_lp = [], 0
+    for i, r in enumerate(md["responses"]):
+        text = replies[(i + 1) * k - 1] if len(replies) >= (i + 1) * k else r["completion"]
+        r = {**r, "completion": text}
+        if fmt != "free":
+            letter = parse_letter(text, r["letters"])
+            if letter is None and from_logprobs:
+                letter = letter_from_logprobs(r.get("top_logprobs"), r["letters"])
+                n_lp += letter is not None
+            r.update(letter=letter, chosen=None if letter is None else r["letters"].index(letter))
+        resp.append(r)
+    value, _ = score_group({**md, "responses": resp}, fmt, sig_figs)
+    return value, n_lp
+
+
+def cells_from_logs(paths: Iterable[str], tasks: Iterable[str] | None = None, rescore_logs: bool = False,
+                    from_logprobs: bool = False) -> tuple[Any, Any, dict[str, Any]]:
     """(cells DataFrame, models DataFrame, provenance dict) for the given logs/directories.
 
     ``tasks``: keep only logs of these tasks (``steer`` / ``steer_me``; default both).
+    ``rescore_logs``: score the samples again from their replies (``rescore``) instead of using
+    the logged scores; ``from_logprobs`` as in ``rescore``.
     """
     keep = set(tasks) if tasks is not None else TASKS
     import pandas as pd
@@ -195,6 +228,7 @@ def cells_from_logs(paths: Iterable[str], tasks: Iterable[str] | None = None) ->
         # A log written by `inspect eval-retry` can hold the same sample twice (the copy started
         # by the interrupted run and the finished one); keep the last copy of each (id, epoch).
         by_sample: dict[tuple[Any, int], dict[str, Any]] = {}
+        n_lp = 0
         for s in read_eval_log_samples(str(path), all_samples_required=False):
             if not s.scores or SCORER not in s.scores:
                 continue
@@ -202,6 +236,11 @@ def cells_from_logs(paths: Iterable[str], tasks: Iterable[str] | None = None) ->
             value = s.scores[SCORER].value
             if not isinstance(value, dict):
                 continue
+            if rescore_logs and md.get("responses"):
+                replies = [m.text for m in s.messages if m.role == "assistant"]
+                value, k = rescore(md, replies, settings["format"], from_logprobs,
+                                   int((header.eval.task_args or {}).get("sig_figs", 3) or 3))
+                n_lp += k
             seconds = s.working_time if s.working_time is not None else s.total_time
             r = sample_row(value, md, seconds)
             r.update(
@@ -234,7 +273,8 @@ def cells_from_logs(paths: Iterable[str], tasks: Iterable[str] | None = None) ->
         m["run_date_max"] = max(filter(None, [m["run_date_max"], created]))
         logs_used.append({"path": str(path), "eval_id": header.eval.eval_id, "task": header.eval.task,
                           "model": model, "status": header.status, "n_samples": n_samples,
-                          "task_args": header.eval.task_args})
+                          "task_args": header.eval.task_args,
+                          **({"rescored": True, "letters_from_logprobs": n_lp} if rescore_logs else {})})
 
     if rows:
         df = pd.DataFrame(rows)
@@ -272,8 +312,16 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("logs", nargs="+", help=".eval log files or directories (searched recursively)")
     ap.add_argument("--out", required=True, help="output directory")
+    ap.add_argument("--rescore", action="store_true",
+                    help="score the samples again from their logged replies with the current parser "
+                         "(e.g. answers after </think>) instead of using the logged scores")
+    ap.add_argument("--letter-from-logprobs", action="store_true",
+                    help="with --rescore: when a reply names no option letter, take the most probable "
+                         "letter at the answer position (needs logged logprobs)")
     a = ap.parse_args(argv)
-    cells, models, prov = cells_from_logs(a.logs)
+    if a.letter_from_logprobs and not a.rescore:
+        ap.error("--letter-from-logprobs needs --rescore")
+    cells, models, prov = cells_from_logs(a.logs, rescore_logs=a.rescore, from_logprobs=a.letter_from_logprobs)
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     cells.to_parquet(out / "cells.parquet", index=False)

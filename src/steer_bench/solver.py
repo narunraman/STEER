@@ -19,6 +19,11 @@ def _logprobs_content(state: TaskState) -> list[Any] | None:
     return lp.content if lp is not None and lp.content else None
 
 
+def _clip(text: str, n: int = 1000) -> str:
+    """The start and the end of a long reply (the answer of a reasoning model is at the end)."""
+    return text if len(text) <= 2 * n else text[:n] + "\n[...]\n" + text[-n:]
+
+
 @solver
 def steer_solver(
     format: str = "mc",
@@ -72,7 +77,7 @@ def steer_solver(
                 letter = parse_letter(completion, letters)
                 top = answer_position_top_logprobs(_logprobs_content(state), letters) if logprobs else None
                 responses.append({
-                    "completion": completion[:2000],
+                    "completion": _clip(completion),
                     "letters": letters,
                     "letter": letter,
                     "chosen": None if letter is None else letters.index(letter),

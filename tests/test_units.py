@@ -7,6 +7,8 @@ from steer_bench.scoring import (
     distribution_stats,
     ece_bin,
     extract_number,
+    final_text,
+    letter_from_logprobs,
     letter_probs,
     parse_letter,
     parse_rule,
@@ -25,6 +27,20 @@ L4 = ["A", "B", "C", "D"]
 ])
 def test_parse_letter(text, expected):
     assert parse_letter(text, L4) == expected
+
+
+def test_parse_letter_after_reasoning():
+    reply = "<think>A is tempting.\nThe answer is A? No: 51.23 matches option C.\n</think>\n\nC"
+    assert parse_letter(reply, L4) == "C"
+    assert final_text("no tags") == "no tags"
+    assert extract_number("<think>try 12, then 7</think>\nThe total is 42.5") == 42.5
+
+
+def test_letter_from_logprobs():
+    top = [("To", math.log(0.9)), ("B", math.log(0.07)), (" A", math.log(0.02)), ("The", math.log(0.01))]
+    assert letter_from_logprobs(top, L4) == "B"
+    assert letter_from_logprobs([("To", 0.0)], L4) is None
+    assert letter_from_logprobs(None, L4) is None
 
 
 def test_parse_letter_continued_letters():

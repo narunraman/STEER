@@ -36,13 +36,25 @@ _LEAD = re.compile(r"^\s*(?:\*\*)?\(?\s*([A-Z])\s*(?:\)|\.|:|,|\*\*|\s|$)")
 _ANSWER_IS = re.compile(r"(?:answer|ANSWER|Answer)\s*(?:is|:)?\s*(?:option\s*)?\(?\*{0,2}([A-Z])\b")
 
 
+def final_text(text: str | None) -> str:
+    """The reply without the model's reasoning: what follows the last ``</think>``.
+
+    A reasoning model served without a reasoning parser returns its thinking in the text,
+    closed by ``</think>``, with the answer after it.
+    """
+    text = text or ""
+    i = text.rfind("</think>")
+    return text[i + len("</think>"):] if i >= 0 else text
+
+
 def parse_letter(text: str, letters: list[str]) -> str | None:
     """The option letter the model wrote, or None.
 
     Accepts a leading letter (``"B"``, ``" B."``, ``"(B)"``, ``"B: ..."``), else the last
-    ``answer is B`` / ``ANSWER: B``. Only letters valid for this part count.
+    ``answer is B`` / ``ANSWER: B``, in the text after any ``</think>``. Only letters valid for
+    this part count.
     """
-    text = text or ""
+    text = final_text(text)
     m = _LEAD.match(text)
     if m and m.group(1) in letters:
         return m.group(1)
@@ -66,6 +78,14 @@ def answer_position_top_logprobs(logprobs_content: list[Any] | None, letters: li
     if not any(clean_token(tok) == clean_token(pos.token) for tok, _ in pairs):
         pairs.append((pos.token, float(pos.logprob)))
     return pairs
+
+
+def letter_from_logprobs(top: list[tuple[str, float]] | None, letters: list[str]) -> str | None:
+    """The most probable valid option letter at the answer position, or None if no valid letter
+    is among the ``top_logprobs``. Used when the model's text names no letter (e.g. it began
+    "To find ..." within a one-token answer budget) but the letter probabilities were recorded."""
+    probs = letter_probs([tuple(t) for t in top or []], letters)
+    return max(probs, key=probs.get) if probs else None
 
 
 def letter_probs(top: list[tuple[str, float]], letters: list[str]) -> dict[str, float]:
@@ -148,9 +168,9 @@ _BOXED = re.compile(r"\\boxed\{((?:[^{}]|\{[^{}]*\})*)\}")
 
 def extract_number(text: str) -> float | None:
     """The final numeric answer: the first number in the last ``\\boxed{...}``, else the first
-    number after the last ``ANSWER:``, else the last number in the text. Thousands separators,
-    ``$`` and a unicode minus are accepted."""
-    text = text or ""
+    number after the last ``ANSWER:``, else the last number in the text (all after any
+    ``</think>``). Thousands separators, ``$`` and a unicode minus are accepted."""
+    text = final_text(text)
     boxed = _BOXED.findall(text)
     if boxed:
         nums = _numbers(boxed[-1])
