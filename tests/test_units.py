@@ -32,6 +32,10 @@ def test_parse_letter(text, expected):
 def test_parse_letter_after_reasoning():
     reply = "<think>A is tempting.\nThe answer is A? No: 51.23 matches option C.\n</think>\n\nC"
     assert parse_letter(reply, L4) == "C"
+    summary = "<think>...</think>\nSumming both groups gives 9226.62 - 2524.14P, which is option A.\n\nA"
+    assert parse_letter(summary, L4) == "A"
+    assert parse_letter("Option A looks right.\n\n**(B)**", L4) == "B"
+    assert parse_letter("The total is 42.\nI", L4) is None
     assert final_text("no tags") == "no tags"
     assert extract_number("<think>try 12, then 7</think>\nThe total is 42.5") == 42.5
 

@@ -34,6 +34,7 @@ def clean_token(tok: str) -> str:
 # ---------------------------------------------------------------- chosen letter from the text
 _LEAD = re.compile(r"^\s*(?:\*\*)?\(?\s*([A-Z])\s*(?:\)|\.|:|,|\*\*|\s|$)")
 _ANSWER_IS = re.compile(r"(?:answer|ANSWER|Answer)\s*(?:is|:)?\s*(?:option\s*)?\(?\*{0,2}([A-Z])\b")
+_LAST_LINE = re.compile(r"\n\s*(?:\*\*)?\(?([A-Z])\)?\.?(?:\*\*)?\s*$")
 
 
 def final_text(text: str | None) -> str:
@@ -51,15 +52,18 @@ def parse_letter(text: str, letters: list[str]) -> str | None:
     """The option letter the model wrote, or None.
 
     Accepts a leading letter (``"B"``, ``" B."``, ``"(B)"``, ``"B: ..."``), else the last
-    ``answer is B`` / ``ANSWER: B``, in the text after any ``</think>``. Only letters valid for
-    this part count.
+    ``answer is B`` / ``ANSWER: B``, else a letter alone on the last line (a summary followed
+    by ``"\n\nB"``), in the text after any ``</think>``. Only letters valid for this part count.
     """
     text = final_text(text)
     m = _LEAD.match(text)
     if m and m.group(1) in letters:
         return m.group(1)
     found = [x for x in _ANSWER_IS.findall(text) if x in letters]
-    return found[-1] if found else None
+    if found:
+        return found[-1]
+    m = _LAST_LINE.search(text)
+    return m.group(1) if m and m.group(1) in letters else None
 
 
 # ---------------------------------------------------------------- option probabilities
