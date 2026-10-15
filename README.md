@@ -1,16 +1,21 @@
-<h1><img src="steer_logo.svg" alt="" height="40" align="absmiddle"> STEER</h1>
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/steer_lockup_dark.svg">
+    <img src="docs/steer_lockup_light.svg" alt="STEER" height="44">
+  </picture>
+</h1>
 
 This repository contains two benchmarks of economic reasoning in language models, together with the code to run a model on them, score it, and diagnose where it fails.
 
 ## The benchmarks
 
-We use **STEER** both for the project and for our first benchmark, which tests rationality in economic tasks that require strategic reasoning <a href="https://arxiv.org/abs/2402.09552"><img src="docs/arxiv_logo.svg" height="14" alt=""> ICML 2024</a>. **STEER-ME**, the second benchmark in the STEER family, focuses on non-strategic microeconomic reasoning <a href="https://arxiv.org/abs/2502.13119"><img src="docs/arxiv_logo.svg" height="14" alt=""> NeurIPS 2025</a>.
+We use **STEER** both for the project and for our first benchmark, which tests rationality in economic tasks that require strategic reasoning <a href="https://arxiv.org/abs/2402.09552"><img src="docs/arxiv_logo.svg" height="14" alt=""></a> <a href="https://arxiv.org/abs/2402.09552">ICML 2024</a>. **STEER-ME**, the second benchmark in the STEER family, focuses on non-strategic microeconomic reasoning <a href="https://arxiv.org/abs/2502.13119"><img src="docs/arxiv_logo.svg" height="14" alt=""></a> <a href="https://arxiv.org/abs/2502.13119">NeurIPS 2025</a>.
 
-Both are built on a taxonomy of economic *elements*, where each element is one concept in economic reasoning. The papers describe the taxonomy, the elements and how questions are created; the <a href="https://steer-benchmark.cs.ubc.ca/"><img src="steer_logo.svg" height="14" alt=""> website</a> lets you browse every element interactively.
+Both are built on a taxonomy of economic *elements*, where each element is one concept in economic reasoning. The papers describe the taxonomy, the elements and how questions are created; the <a href="https://steer-benchmark.cs.ubc.ca/"><img src="docs/steer_badge.svg" height="14" alt=""></a> <a href="https://steer-benchmark.cs.ubc.ca/">website</a> lets you browse every element interactively, and its <a href="https://steer-benchmark.cs.ubc.ca/evals">Evals</a> pages show how many models score on each.
 
 > [!NOTE]
-> Our benchmarks are *dynamic*: questions are generated from templates, so you can draw fresh questions at any time from the [API](https://steer-benchmark.cs.ubc.ca/reference). For a static test set, each benchmark also has a fixed dataset on Hugging Face (CC BY 4.0):
-> <a href="https://huggingface.co/datasets/narunraman/steer"><img src="docs/hf_logo.svg" height="14" alt=""> <code>narunraman/steer</code></a> and <a href="https://huggingface.co/datasets/narunraman/steer_me"><img src="docs/hf_logo.svg" height="14" alt=""> <code>narunraman/steer_me</code></a>.
+> Our benchmarks are *dynamic*: questions are generated from templates by <a href="https://github.com/narunraman/autosteer"><img src="docs/steer_badge.svg" height="14" alt=""></a> <a href="https://github.com/narunraman/autosteer">autoSTEER</a>, so you can draw fresh questions at any time from the [API](https://steer-benchmark.cs.ubc.ca/reference) or with autoSTEER in Python. For a static test set, each benchmark also has a fixed dataset on Hugging Face (CC BY 4.0):
+> <a href="https://huggingface.co/datasets/narunraman/steer"><img src="docs/hf_logo.svg" height="14" alt=""></a> <a href="https://huggingface.co/datasets/narunraman/steer"><code>narunraman/steer</code></a> and <a href="https://huggingface.co/datasets/narunraman/steer_me"><img src="docs/hf_logo.svg" height="14" alt=""></a> <a href="https://huggingface.co/datasets/narunraman/steer_me"><code>narunraman/steer_me</code></a>.
 
 ## Evaluating a model
 
@@ -47,6 +52,10 @@ steer-bench report logs/ --out card.html
 ```
 
 A report card shows the model's scores for every format it was run in: a summary, then every element grouped by setting and module, with averages. `steer-bench export logs/ --out results/` writes the same results as a table for your own analysis.
+
+### Find where a model fails
+
+A score is an average over the fixed dataset, and the report card can only show weaknesses the dataset has enough questions to reveal. Because the benchmarks are dynamic, you can instead search the space of questions for the combinations of element, domain and difficulty where a model is reliably wrong: [QuickScope](https://quickscope.narunraman.com/) does this adaptively and runs on STEER-ME out of the box. See the [tutorial](https://steer-benchmark.cs.ubc.ca/tutorial#quickscope).
 
 ## Choosing what to run
 
