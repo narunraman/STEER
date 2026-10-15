@@ -127,6 +127,9 @@ def distribution_stats(raw: dict[str, float], letters: list[str], gold: int) -> 
         "top_correct": float(top == gold),
         "brier_cond": sum((o - p) ** 2 for o, p in zip(onehot, cond)),
         "brier_mix": sum((o - p) ** 2 for o, p in zip(onehot, mix)),
+        # averaged over the options, the STEER-ME paper's definition: (1/|O|) sum_o (p(o) - a(o))^2
+        "brier_avg_cond": sum((o - p) ** 2 for o, p in zip(onehot, cond)) / k,
+        "brier_avg_mix": sum((o - p) ** 2 for o, p in zip(onehot, mix)) / k,
     }
 
 

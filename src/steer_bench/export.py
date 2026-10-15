@@ -18,7 +18,8 @@ Writes three files to ``OUT_DIR``:
     denominator of the calibration metrics; 0 when the provider returned no logprobs);
   - ``n_correct`` (exact match = ``n_correct / n``), ``sum_norm`` (normalized accuracy =
     ``sum_norm / n``), ``sum_norm_strict`` (the same with unanswered questions counted wrong);
-  - ``sum_p_correct_{cond,mix}`` (EPA), ``sum_brier_{cond,mix}``, ``sum_conf_{cond,mix}``,
+  - ``sum_p_correct_{cond,mix}`` (EPA), ``sum_brier_{cond,mix}`` (summed over options),
+    ``sum_brier_avg_{cond,mix}`` (averaged over options, the paper's Brier), ``sum_conf_{cond,mix}``,
     ``n_top_correct``, ``sum_invalid_mass`` and ``n_alpha_zero`` for the two ways of handling
     probability outside the option letters (conditioning, mixing);
   - ``ece_{cond,mix}_{n,conf,acc}{0..9}``: per confidence bin [i/10, (i+1)/10), the count, the
@@ -72,6 +73,8 @@ _VALID_SUMS = {
     "top_correct": "n_top_correct",
     "brier_cond": "sum_brier_cond",
     "brier_mix": "sum_brier_mix",
+    "brier_avg_cond": "sum_brier_avg_cond",
+    "brier_avg_mix": "sum_brier_avg_mix",
     "invalid_mass": "sum_invalid_mass",
     "alpha_zero": "n_alpha_zero",
     "last_turn": "n_last_turn",
@@ -138,6 +141,11 @@ def task_settings(task_args: dict[str, Any], task_metadata: dict[str, Any] | Non
 def sample_row(value: dict[str, Any], metadata: dict[str, Any], seconds: float | None) -> dict[str, float]:
     """One sample's contribution to its cell (the per-question columns, already summed form)."""
     v = {k: _f(x) for k, x in value.items()}
+    # logs scored before brier_avg_* existed: the probabilities are over the first part's options
+    parts = metadata.get("parts") or []
+    for var in ("cond", "mix"):
+        if f"brier_avg_{var}" not in v and f"brier_{var}" in v and parts and parts[0].get("options"):
+            v[f"brier_avg_{var}"] = v[f"brier_{var}"] / len(parts[0]["options"])
     answered = v.get("answered", 0.0) == 1.0
     has_probs = answered and v.get("has_probs", 0.0) == 1.0
     r: dict[str, float] = {c: 0.0 for c in STAT_COLS + EXTRA_COLS}
