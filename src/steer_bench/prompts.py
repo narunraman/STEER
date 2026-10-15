@@ -1,16 +1,10 @@
 """Prompt text: every string the model sees, other than the questions themselves, is defined here.
 
 The default prompt set, ``open2025``, is the one used by every canonical open-weight STEER-ME
-run (the 2025 evaluation harness, ``vllm_model.py`` of 2025-05-19). The
-strings were recovered verbatim from the raw result pickles and checked byte for byte against
-7,942 original prompts. Those runs used the ``shown`` and
-``hidden`` formats; the prompts of ``mc``/``none`` (same answer instruction), ``free`` (the
-reasoning instruction alone; the answer is read from ``\\boxed{}``) and few-shot examples
-follow the same strings.
-
-To use your own wording, pass ``-T prompts=path/to/prompts.json``: a JSON object with the keys
-of a ``PROMPT_SETS`` entry (missing keys fall back to ``open2025``). The set's name and a hash
-of its strings are recorded in the log and in the converted cells.
+run (the 2025 evaluation harness, ``vllm_model.py`` of 2025-05-19). To use your own wording, pass 
+``-T prompts=path/to/prompts.json``: a JSON object with the keys of a ``PROMPT_SETS`` entry 
+(missing keys fall back to ``open2025``). The set's name and a hash of its strings are recorded in 
+the log and in the converted cells.
 """
 
 from __future__ import annotations
