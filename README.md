@@ -53,7 +53,7 @@ A report card shows the model's scores for every format it was run in: a summary
 
 
 > [!TIP]
-> A score is an average over the fixed dataset, and the report card can only show weaknesses the dataset has enough questions to reveal. Because the benchmarks are dynamic, you can instead search the space of questions for the combinations of element, domain and difficulty where a model is reliably wrong: [QuickScope](https://quickscope.narunraman.com/) does this adaptively and runs on STEER-ME out of the box. See the [tutorial](https://steer-benchmark.cs.ubc.ca/tutorial#quickscope).
+> A score is an average over the fixed dataset, and the report card can only show weaknesses the dataset has enough questions to reveal. Because the benchmarks are dynamic, you can instead search the space of questions for the combinations of element, domain and difficulty where a model is reliably wrong: [QuickScope](https://quickscope.narunraman.com/) does this adaptively and runs on STEER-ME out of the box.
 
 ## Choosing what to run
 
