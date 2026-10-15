@@ -1,8 +1,6 @@
 <h1>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/steer_lockup_dark.svg">
-    <img src="docs/steer_lockup_light.svg" alt="STEER" height="44">
-  </picture>
+  <img src="docs/steer_lockup_light.svg#gh-light-mode-only" alt="STEER" height="44">
+  <img src="docs/steer_lockup_dark.svg#gh-dark-mode-only" alt="STEER" height="44">
 </h1>
 
 This repository contains two benchmarks of economic reasoning in language models, together with the code to run a model on them, score it, and diagnose where it fails.
@@ -14,7 +12,7 @@ We use **STEER** both for the project and for our first benchmark, which tests r
 Both are built on a taxonomy of economic *elements*, where each element is one concept in economic reasoning. The papers describe the taxonomy, the elements and how questions are created; the <a href="https://steer-benchmark.cs.ubc.ca/"><img src="docs/steer_badge.svg" height="14" alt=""></a> <a href="https://steer-benchmark.cs.ubc.ca/">website</a> lets you browse every element interactively, and its <a href="https://steer-benchmark.cs.ubc.ca/evals">Evals</a> pages show how many models score on each.
 
 > [!NOTE]
-> Our benchmarks are *dynamic*: questions are generated from templates by <a href="https://github.com/narunraman/autosteer"><img src="docs/steer_badge.svg" height="14" alt=""></a> <a href="https://github.com/narunraman/autosteer">autoSTEER</a>, so you can draw fresh questions at any time from the [API](https://steer-benchmark.cs.ubc.ca/reference) or with autoSTEER in Python. For a static test set, each benchmark also has a fixed dataset on Hugging Face (CC BY 4.0):
+> Our benchmarks are *dynamic*: questions are generated from templates by <a href="https://github.com/narunraman/autosteer"><img src="docs/autosteer_wheel.svg" height="14" alt=""></a> <a href="https://github.com/narunraman/autosteer">autoSTEER</a>, so you can draw fresh questions at any time from the [API](https://steer-benchmark.cs.ubc.ca/reference) or with autoSTEER in Python. For a static test set, each benchmark also has a fixed dataset on Hugging Face (CC BY 4.0):
 > <a href="https://huggingface.co/datasets/narunraman/steer"><img src="docs/hf_logo.svg" height="14" alt=""></a> <a href="https://huggingface.co/datasets/narunraman/steer"><code>narunraman/steer</code></a> and <a href="https://huggingface.co/datasets/narunraman/steer_me"><img src="docs/hf_logo.svg" height="14" alt=""></a> <a href="https://huggingface.co/datasets/narunraman/steer_me"><code>narunraman/steer_me</code></a>.
 
 ## Evaluating a model
