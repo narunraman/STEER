@@ -3,6 +3,7 @@ message: "If you use STEER or STEER-ME, please cite the paper for the benchmark 
 title: "steer-bench: STEER and STEER-ME evaluations"
 abstract: "steer-bench is an Inspect harness for evaluating language models on the STEER and STEER-ME benchmarks of economic reasoning, with scoring for accuracy and calibration and a converter from evaluation logs to scored cells and per-response results."
 type: software
+doi: "10.5281/zenodo.23406991"
 keywords:
   - benchmark
   - large language models

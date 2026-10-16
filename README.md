@@ -3,6 +3,8 @@
   <img src="docs/steer_lockup_dark.svg#gh-dark-mode-only" alt="STEER" height="44">
 </h1>
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23406991.svg)](https://doi.org/10.5281/zenodo.23406991)
+
 This repository contains two benchmarks of economic reasoning in language models, together with the code to run a model on them, score it, and diagnose where it fails.
 
 ## The benchmarks
@@ -151,5 +153,17 @@ If you use STEER or STEER-ME, please cite the paper for the benchmark you used:
   year      = {2025},
   note      = {Datasets and Benchmarks Track},
   url       = {https://arxiv.org/abs/2502.13119}
+}
+```
+
+To cite steer-bench itself (this DOI always points to the latest release; each release on [Zenodo](https://doi.org/10.5281/zenodo.23406991) has its own):
+
+```bibtex
+@software{raman_steer_bench,
+  author    = {Raman, Narun},
+  title     = {{steer-bench: STEER and STEER-ME evaluations}},
+  publisher = {Zenodo},
+  doi       = {10.5281/zenodo.23406991},
+  url       = {https://doi.org/10.5281/zenodo.23406991}
 }
 ```
