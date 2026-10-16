@@ -189,6 +189,15 @@ def rescore(md: dict[str, Any], replies: list[str], fmt: str, from_logprobs: boo
     """
     from .scorer import score_group
 
+    resp, n_lp = rescored_responses(md, replies, fmt, from_logprobs)
+    value, _ = score_group({**md, "responses": resp}, fmt, sig_figs)
+    return value, n_lp
+
+
+def rescored_responses(md: dict[str, Any], replies: list[str], fmt: str,
+                       from_logprobs: bool) -> tuple[list[dict[str, Any]], int]:
+    """The sample's responses with each part's letter and chosen option read again from its full reply (see
+    ``rescore``), and the number of parts whose letter came from the letter probabilities."""
     k = _TURNS[fmt]
     resp, n_lp = [], 0
     for i, r in enumerate(md["responses"]):
@@ -201,25 +210,22 @@ def rescore(md: dict[str, Any], replies: list[str], fmt: str, from_logprobs: boo
                 n_lp += letter is not None
             r.update(letter=letter, chosen=None if letter is None else r["letters"].index(letter))
         resp.append(r)
-    value, _ = score_group({**md, "responses": resp}, fmt, sig_figs)
-    return value, n_lp
+    return resp, n_lp
 
 
-def cells_from_logs(paths: Iterable[str], tasks: Iterable[str] | None = None, rescore_logs: bool = False,
-                    from_logprobs: bool = False) -> tuple[Any, Any, dict[str, Any]]:
-    """(cells DataFrame, models DataFrame, provenance dict) for the given logs/directories.
-
-    ``tasks``: keep only logs of these tasks (``steer`` / ``steer_me``; default both).
-    ``rescore_logs``: score the samples again from their replies (``rescore``) instead of using
-    the logged scores; ``from_logprobs`` as in ``rescore``.
+def read_logs(paths: Iterable[str], tasks: Iterable[str] | None = None, rescore_logs: bool = False,
+              from_logprobs: bool = False, skipped: list | None = None) -> Iterable[tuple]:
+    """The scored samples of the steer_bench logs among ``paths``, one log at a time:
+    ``(path, header, settings, samples, n_lp)``, ``samples`` mapping ``(id, epoch)`` to ``(sample, score
+    value)``. Logs that cannot be read or are not steer_bench tasks are appended to ``skipped``. The score
+    value is the logged one, or with ``rescore_logs`` the one ``rescore`` gives (``n_lp`` counts the letters
+    it read from the letter probabilities). Shared by the cells table and the per-response rows
+    (steer_bench.results), so both count the same samples the same way.
     """
     keep = set(tasks) if tasks is not None else TASKS
-    import pandas as pd
     from inspect_ai.log import read_eval_log, read_eval_log_samples
 
-    rows: list[dict[str, Any]] = []
-    models: dict[str, dict[str, Any]] = {}
-    logs_used, skipped = [], []
+    skipped = [] if skipped is None else skipped
     for path in _log_files(paths):
         try:
             header = read_eval_log(str(path), header_only=True)
@@ -231,11 +237,9 @@ def cells_from_logs(paths: Iterable[str], tasks: Iterable[str] | None = None, re
             skipped.append({"path": str(path), "reason": f"task {header.eval.task}"})
             continue
         settings = task_settings(header.eval.task_args or {}, header.eval.metadata)
-        model = header.eval.model
-        run_id = f"inspect/{model}"
         # A log written by `inspect eval-retry` can hold the same sample twice (the copy started
         # by the interrupted run and the finished one); keep the last copy of each (id, epoch).
-        by_sample: dict[tuple[Any, int], dict[str, Any]] = {}
+        by_sample: dict[tuple[Any, int], tuple[Any, dict[str, Any]]] = {}
         n_lp = 0
         for s in read_eval_log_samples(str(path), all_samples_required=False):
             if not s.scores or SCORER not in s.scores:
@@ -249,6 +253,29 @@ def cells_from_logs(paths: Iterable[str], tasks: Iterable[str] | None = None, re
                 value, k = rescore(md, replies, settings["format"], from_logprobs,
                                    int((header.eval.task_args or {}).get("sig_figs", 3) or 3))
                 n_lp += k
+            by_sample[(s.id, s.epoch)] = (s, value)
+        yield path, header, settings, by_sample, n_lp
+
+
+def cells_from_logs(paths: Iterable[str], tasks: Iterable[str] | None = None, rescore_logs: bool = False,
+                    from_logprobs: bool = False) -> tuple[Any, Any, dict[str, Any]]:
+    """(cells DataFrame, models DataFrame, provenance dict) for the given logs/directories.
+
+    ``tasks``: keep only logs of these tasks (``steer`` / ``steer_me``; default both).
+    ``rescore_logs``: score the samples again from their replies (``rescore``) instead of using
+    the logged scores; ``from_logprobs`` as in ``rescore``.
+    """
+    import pandas as pd
+
+    rows: list[dict[str, Any]] = []
+    models: dict[str, dict[str, Any]] = {}
+    logs_used, skipped = [], []
+    for path, header, settings, by_sample, n_lp in read_logs(paths, tasks, rescore_logs, from_logprobs, skipped):
+        task_name = header.eval.task.split("/")[-1]
+        model = header.eval.model
+        run_id = f"inspect/{model}"
+        for s, value in by_sample.values():
+            md = s.metadata or {}
             seconds = s.working_time if s.working_time is not None else s.total_time
             r = sample_row(value, md, seconds)
             r.update(
@@ -257,8 +284,7 @@ def cells_from_logs(paths: Iterable[str], tasks: Iterable[str] | None = None, re
                 adaptation=settings["adaptation"], domain=md.get("domain"), type=md.get("type"),
                 perspective=md.get("perspective"), difficulty=md.get("difficulty"),
             )
-            by_sample[(s.id, s.epoch)] = r
-        rows.extend(by_sample.values())
+            rows.append(r)
         n_samples = len(by_sample)
         m = models.setdefault(run_id, {
             "run_id": run_id, "model": model, "source": "inspect", "benchmark": set(),
