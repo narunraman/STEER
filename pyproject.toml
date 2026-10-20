@@ -9,7 +9,7 @@ license-files = ["LICENSE"]
 authors = [{ name = "Narun Raman" }]
 dependencies = [
     "datasets>=2.18",
-    "inspect-ai>=0.3.276",
+    "inspect-ai>=0.3.276,<0.4",
     "pandas>=2.0",
     "pyarrow>=14",
 ]

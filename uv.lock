@@ -2474,7 +2474,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "datasets", specifier = ">=2.18" },
-    { name = "inspect-ai", specifier = ">=0.3.276" },
+    { name = "inspect-ai", specifier = ">=0.3.276,<0.4" },
     { name = "pandas", specifier = ">=2.0" },
     { name = "pyarrow", specifier = ">=14" },
 ]
