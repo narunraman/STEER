@@ -36,8 +36,13 @@ def test_answers_and_probabilities(logs):  # noqa: F811
                 assert len(p["option_probs"]) == len(p["options"])
 
 
-def test_cli_writes_parquet(logs, tmp_path):  # noqa: F811
+def test_cli_writes_parquet_with_the_fixed_schema(logs, tmp_path):  # noqa: F811
+    import pyarrow.parquet as pq
+
+    from steer_bench.results import schema
+
     d, _ = logs
     f = tmp_path / "rows.parquet"
     assert main([str(d), "--model", "test-model", "--out", str(f)]) == 0
     assert len(pd.read_parquet(f)) > 0
+    assert pq.read_schema(f).remove_metadata() == schema()

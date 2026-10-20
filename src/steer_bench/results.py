@@ -28,6 +28,26 @@ from .scorer import score_group
 from .scoring import letter_probs
 
 BENCHMARKS = {"steer": "STEER", "steer_me": "STEER-ME"}
+
+
+def schema():
+    """The rows' Arrow schema: fixed, so that files of different models and formats load as one dataset."""
+    import pyarrow as pa
+
+    s, i32, i64, f64, b = pa.string(), pa.int32(), pa.int64(), pa.float64(), pa.bool_()
+    part = pa.struct([("question_id", s), ("question", s), ("options", pa.list_(s)), ("correct_index", i32),
+                      ("letter", s), ("chosen_index", i32), ("option_probs", pa.list_(f64))])
+    message = pa.struct([("role", s), ("content", s), ("reasoning", s)])
+    return pa.schema([
+        ("benchmark", s), ("model", s), ("format", s), ("question_id", s), ("element", s), ("setting", s),
+        ("module", s), ("type", s), ("domain", s), ("perspective", s), ("difficulty", i32), ("template_id", s),
+        ("grading", s), ("parts", pa.list_(part)), ("answer", s), ("messages", pa.list_(message)),
+        ("answered", b), ("correct", b), ("normalized_score", f64), ("normalized_score_strict", f64),
+        ("p_correct", f64), ("confidence", f64), ("brier", f64), ("input_tokens", i64), ("output_tokens", i64),
+        ("reasoning_tokens", i64), ("seconds", f64), ("data_subset", s), ("prompts", s), ("shots", i32),
+        ("logprobs", b), ("temperature", f64), ("max_tokens", i64), ("steer_bench_version", s),
+        ("inspect_version", s), ("run_id", s), ("run_date", s),
+    ])
 # the columns that identify a row
 KEY = ["benchmark", "model", "format", "question_id"]
 
@@ -169,7 +189,8 @@ def main(argv: list[str] | None = None) -> int:
     a = ap.parse_args(argv)
     if a.letter_from_logprobs and not a.rescore:
         ap.error("--letter-from-logprobs needs --rescore")
-    import pandas as pd
+    import pyarrow as pa
+    import pyarrow.parquet as pq
 
     rows = rows_from_logs(a.logs, a.model, a.rescore, a.letter_from_logprobs)
     if not a.no_check:
@@ -179,7 +200,12 @@ def main(argv: list[str] | None = None) -> int:
             return 1
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame(rows).to_parquet(out, index=False)
+    sch = schema()
+    for r in rows:   # str() the free-form text columns that a log may hold as other types
+        for k in ("perspective", "type", "domain", "answer"):
+            if r.get(k) is not None and not isinstance(r[k], str):
+                r[k] = str(r[k])
+    pq.write_table(pa.Table.from_pylist(rows, schema=sch), out)
     print(f"{len(rows)} rows ({a.model}) -> {out}")
     return 0
 
