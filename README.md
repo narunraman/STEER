@@ -43,7 +43,7 @@ An open-weight model with [vLLM](https://docs.vllm.ai), which Inspect starts for
 inspect eval steer_bench/steer --model vllm/Qwen/Qwen2.5-7B-Instruct -M generation_config=vllm
 ```
 
-The tasks are `steer_bench/steer` and `steer_bench/steer_me`; leave out `-T element=...` to run the whole benchmark. `generation_config=vllm` stops vLLM from applying the model's own sampling defaults. To use a model you already serve behind an OpenAI-compatible endpoint, add `--model-base-url`; [slurm-llm](https://github.com/narunraman/slurm-llm) is one way to serve models on a Slurm cluster. More in [`examples/`](examples/).
+The tasks are `steer_bench/steer` and `steer_bench/steer_me`; leave out `-T element=...` to run the whole benchmark. `generation_config=vllm` stops vLLM from applying the model's own sampling defaults. To use a model you already serve behind an OpenAI-compatible endpoint, add `--model-base-url`; <a href="https://github.com/narunraman/slurm-llm#gh-light-mode-only"><img src=".github/assets/github_logo_light.svg" height="14" alt=""></a><a href="https://github.com/narunraman/slurm-llm#gh-dark-mode-only"><img src=".github/assets/github_logo_dark.svg" height="14" alt=""></a> <a href="https://github.com/narunraman/slurm-llm">slurm-llm</a> is one way to serve models on a Slurm cluster. More in [`examples/`](examples/).
 
 ### Read the results
 
