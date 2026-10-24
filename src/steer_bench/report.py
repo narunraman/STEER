@@ -588,7 +588,8 @@ def main(argv: list[str] | None = None) -> int:
     dirs = [Path(o) for o in a.out if not Path(o).suffix]
     for d in dirs:
         index = write_cards(cells, models, bench, d, a.prob_mode)
-        print(f"wrote {len(set(cells['run_id']))} report cards and {index}")
+        n = len(set(cells["run_id"]))
+        print(f"wrote {n} report card{'s' if n != 1 else ''} and {index}")
     files = [o for o in a.out if Path(o).suffix]
     if not files:
         return 0
