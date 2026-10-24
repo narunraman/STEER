@@ -79,7 +79,8 @@ def main(argv: list[str] | None = None) -> int:
     if done:
         cells, model_info, bench = load_inputs([a.log_dir], a.benchmark)
         index = write_cards(cells, model_info, bench, Path(a.out))
-        print(f"wrote {len(set(cells['run_id']))} report cards; compare them in {index}")
+        n = len(set(cells["run_id"]))
+        print(f"wrote {n} report card{'s' if n != 1 else ''}; compare them in {index}")
     if not success:
         failed = sorted({log.eval.model for log in logs if log.status != "success"})
         print(f"not finished: {', '.join(failed)}; run the same command again to resume")
