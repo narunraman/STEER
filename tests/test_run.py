@@ -5,7 +5,7 @@ import pytest
 
 from steer_bench.cli import main as cli
 from steer_bench.report import write_cards
-from steer_bench.run import parse_args_list, parse_models
+from steer_bench.run import model_args_for, parse_args_list, parse_models
 
 
 def test_models_from_a_file_or_a_list(tmp_path):
@@ -51,3 +51,10 @@ def test_run_evaluates_every_model_and_writes_the_cards(data_root, tmp_path, cap
     assert code == 0, capsys.readouterr()
     assert sorted(p.name for p in out.iterdir()) == ["index.html", "mockllm__model.html", "mockllm__other.html"]
     assert "wrote 2 report cards" in capsys.readouterr().out
+
+
+def test_slurm_llm_jobs_are_cancelled_when_their_model_is_done_unless_kept():
+    models = ["sllm/qwen-3-8b", "openai/gpt-4o-mini"]
+    assert model_args_for(models, {}) == [{"keep": False}, {}]  # other providers do not know keep
+    assert model_args_for(models, {"keep": True, "cluster": "c"}) == [{"keep": True, "cluster": "c"},
+                                                                      {"keep": True, "cluster": "c"}]

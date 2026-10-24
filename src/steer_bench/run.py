@@ -44,6 +44,12 @@ def parse_args_list(pairs: list[str], flag: str) -> dict[str, Any]:
     return out
 
 
+def model_args_for(models: list[str], model_args: dict[str, Any]) -> list[dict[str, Any]]:
+    """Each model's options. sllm/ models (slurm-llm) default to keep=false: in a run over many
+    models, each model's job is cancelled once that model is done, rather than holding its GPUs."""
+    return [{"keep": False, **model_args} if m.startswith("sllm/") else dict(model_args) for m in models]
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="steer-bench run", description=__doc__.split("\n\n")[0])
     ap.add_argument("benchmark", choices=BENCHMARKS)
@@ -67,14 +73,18 @@ def main(argv: list[str] | None = None) -> int:
         ap.error(str(e))
 
     from inspect_ai import eval_set
+    from inspect_ai.model import get_model
 
     from .report import load_inputs, write_cards
 
     print(f"running {a.benchmark} on {len(models)} model(s); logs in {a.log_dir}")
+    if any(m.startswith("sllm/") for m in models) and "keep" not in model_args:
+        print("sllm/ models: each one's job is cancelled once it is done (-M keep=true keeps them running)")
     options = {k: v for k, v in (("limit", a.limit), ("max_tasks", a.max_tasks), ("retry_attempts", a.retry_attempts))
                if v is not None}
-    success, logs = eval_set(tasks=f"steer_bench/{a.benchmark}", model=models, model_args=model_args,
-                             task_args=task_args, log_dir=a.log_dir, **options)
+    resolved = [get_model(m, **args) for m, args in zip(models, model_args_for(models, model_args))]
+    success, logs = eval_set(tasks=f"steer_bench/{a.benchmark}", model=resolved, task_args=task_args,
+                             log_dir=a.log_dir, **options)
     done = [log for log in logs if log.status == "success"]
     if done:
         cells, model_info, bench = load_inputs([a.log_dir], a.benchmark)
