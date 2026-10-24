@@ -510,17 +510,95 @@ def render_markdown(r: dict[str, Any]) -> str:
 
 
 # ------------------------------------------------------------------ CLI
+def _slug(model: str) -> str:
+    """A file name for a model's card: "vllm/Qwen/Qwen3-8B" -> "vllm__Qwen__Qwen3-8B"."""
+    return re.sub(r"[^A-Za-z0-9._-]+", "_", model.replace("/", "__")).strip("_") or "model"
+
+
+def render_index_html(reports: list[dict[str, Any]], cards: dict[str, str]) -> str:
+    """A page comparing several models' report cards: one row per model, best first.
+
+    Columns: mean normalized accuracy over elements for each format, then each setting's mean in
+    the first format (to compare models on the parts of the benchmark that matter to you).
+    """
+    esc = html.escape
+    fmts: list[str] = []
+    for r in reports:
+        fmts += [f for f in r["formats"] if f not in fmts]
+    lead = fmts[0]
+    settings: list[str] = []
+    for r in reports:
+        settings += [s["name"] for s in r["settings"] if s["name"] not in settings]
+
+    def score(r, f=lead):
+        v = r["summary"].get(f, {}).get("macro_normalized_accuracy", math.nan)
+        return -math.inf if math.isnan(v) else v
+
+    ranked = sorted(reports, key=score, reverse=True)
+    bench = reports[0]["benchmark_name"]
+    out = ["<!doctype html><html lang='en'><head><meta charset='utf-8'>",
+           "<meta name='viewport' content='width=device-width,initial-scale=1'>",
+           f"<title>{esc(bench)}: {len(reports)} models</title><style>{CSS}</style></head><body><main>",
+           f"<h1>{esc(bench)}: {len(reports)} models</h1>",
+           f"<p class='meta'>ranked by mean normalized accuracy over elements, {esc(format_label(lead))} · "
+           f"steer-bench {esc(reports[0]['steer_bench_version'])} · generated {esc(reports[0]['generated'])}</p>",
+           "<div class='legend'><span>−1</span><span class='bar'></span><span>+1</span>"
+           "<span>normalized accuracy (0 = random guessing)</span></div>",
+           "<div class='wrap'><table><tr><th>#</th><th class='l'>model</th>"
+           + "".join(f"<th>{esc(format_label(f))}</th>" for f in fmts)
+           + "".join(f"<th class='l'><small>{esc(n)}</small></th>" for n in settings) + "</tr>"]
+    for i, r in enumerate(ranked, 1):
+        by_setting = {s["name"]: s["avg"].get(lead, math.nan) for s in r["settings"]}
+        out.append(f"<tr><td>{i}</td><td class='l'><a href='{esc(cards[r['run_id']])}'>{esc(r['model'])}</a></td>"
+                   + "".join(_heat_td(r["summary"][f]["macro_normalized_accuracy"],
+                                      sub=f"{int(r['summary'][f]['n_rows'])} q", strong=True)
+                             if f in r["summary"] else "<td></td>" for f in fmts)
+                   + "".join(_heat_td(by_setting.get(n, math.nan), title=f"{n}: mean over elements")
+                             for n in settings) + "</tr>")
+    out.append("</table></div></main></body></html>")
+    return "\n".join(out)
+
+
+def write_cards(cells, models, benchmark: str, out_dir: Path, prob_mode: str = "condition") -> Path:
+    """A report card per model in out_dir (<model>.html), and index.html comparing them."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    reports, cards = [], {}
+    for run_id in sorted(set(cells["run_id"])):
+        r = build_report(cells, models, benchmark, run_id, prob_mode)
+        name = _slug(r["model"]) + ".html"
+        (out_dir / name).write_text(render_html(r))
+        reports.append(r)
+        cards[run_id] = name
+    index = out_dir / "index.html"
+    index.write_text(render_index_html(reports, cards))
+    return index
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="steer-bench report", description=__doc__.split("\n\n")[0])
     ap.add_argument("inputs", nargs="+", help=".eval logs or directories, or steer-bench export output")
-    ap.add_argument("--out", action="append", required=True, help="output file, .html or .md (repeatable)")
+    ap.add_argument("--out", action="append", required=True,
+                    help="output file, .html or .md (repeatable); or a directory, for a card per model and an "
+                         "index.html comparing them")
     ap.add_argument("--benchmark", choices=sorted(BENCH_NAMES), help="default: inferred from the input")
     ap.add_argument("--run", help="run_id to report (default: the only one in the input)")
     ap.add_argument("--prob-mode", default="condition", choices=["condition", "mix"])
     a = ap.parse_args(argv)
     cells, models, bench = load_inputs(a.inputs, a.benchmark)
-    rep = build_report(cells, models, bench, a.run, a.prob_mode)
-    for o in a.out:
+    dirs = [Path(o) for o in a.out if not Path(o).suffix]
+    for d in dirs:
+        index = write_cards(cells, models, bench, d, a.prob_mode)
+        print(f"wrote {len(set(cells['run_id']))} report cards and {index}")
+    files = [o for o in a.out if Path(o).suffix]
+    if not files:
+        return 0
+    try:
+        rep = build_report(cells, models, bench, a.run, a.prob_mode)
+    except ValueError as e:
+        if "several models" in str(e):
+            ap.error(f"{e}, or give --out a directory for a card per model")
+        raise
+    for o in files:
         p = Path(o)
         p.parent.mkdir(parents=True, exist_ok=True)
         if p.suffix.lower() in (".html", ".htm"):

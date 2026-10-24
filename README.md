@@ -53,6 +53,14 @@ steer-bench report logs/ --out card.html
 
 A report card shows the model's scores for every format it was run in: a summary, then every element grouped by setting and module, with averages. `steer-bench export logs/ --out results/` writes the same results as a table for your own analysis.
 
+### Compare several models
+
+```bash
+steer-bench run steer --models models.txt --out cards/
+```
+
+`models.txt` lists one Inspect model per line (`#` starts a comment), e.g. `openai/gpt-4o-mini`, or `sllm/qwen-3-8b` for a model that <a href="https://github.com/narunraman/slurm-llm">slurm-llm</a> serves on a Slurm cluster (its `inspect` extra). Every model runs through Inspect's `eval_set`, so running the same command again resumes whatever did not finish; then `cards/` gets a report card per model and `index.html`, which ranks them, with each setting's average so you can compare them on the parts that matter to you. Task options go in with `-T` (`-T format=mc -T module=...`), model options with `-M`, and `--limit N` tries it on a few questions first; with `sllm/` models each running model is a GPU job, and `--max-tasks N` limits how many run at once. `steer-bench report logs/ --out cards/` makes the same cards from existing logs.
+
 
 > [!TIP]
 > These are really large benchmarks, so uniformly sampling questions and then post-hoc scoring to identify weaknesses can be limiting. Instead, you might want to dynamically search the space of questions for the combinations of element, domain and difficulty where a model is reliably wrong. We built a tool to do just that: <a href="https://quickscope.narunraman.com#gh-light-mode-only"><img src=".github/assets/quickscope_mark_light.svg" height="14" alt=""></a><a href="https://quickscope.narunraman.com#gh-dark-mode-only"><img src=".github/assets/quickscope_mark_dark.svg" height="14" alt=""></a> <a href="https://quickscope.narunraman.com/">QuickScope</a>.

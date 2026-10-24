@@ -1,4 +1,4 @@
-"""``steer-bench`` command: ``steer-bench report ...``, ``steer-bench export ...`` and ``steer-bench results ...``."""
+"""``steer-bench`` command: ``steer-bench run ...``, ``report ...``, ``export ...`` and ``results ...``."""
 
 from __future__ import annotations
 
@@ -7,7 +7,8 @@ import sys
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
-    usage = ("usage: steer-bench {report,export,results} ...\n"
+    usage = ("usage: steer-bench {run,report,export,results} ...\n"
+             "  run      run a benchmark on several models, then write a report card for each and an index\n"
              "  report   report card (HTML/Markdown) from .eval logs or converted cells\n"
              "  export   convert .eval logs to the scored-cells table\n"
              "  results  convert .eval logs to per-response rows (the public results dataset)")
@@ -15,7 +16,9 @@ def main(argv: list[str] | None = None) -> int:
         print(usage)
         return 0
     cmd, rest = argv[0], argv[1:]
-    if cmd == "report":
+    if cmd == "run":
+        from .run import main as run
+    elif cmd == "report":
         from .report import main as run
     elif cmd == "export":
         from .export import main as run
