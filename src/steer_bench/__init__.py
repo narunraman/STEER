@@ -1,6 +1,6 @@
 """Inspect evaluations for the STEER and STEER-ME benchmarks."""
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 from .tasks import steer, steer_me
 
