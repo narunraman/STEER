@@ -40,6 +40,18 @@ def test_parse_letter_after_reasoning():
     assert extract_number("<think>try 12, then 7</think>\nThe total is 42.5") == 42.5
 
 
+def test_parse_letter_boxed():
+    # reasoning models often reason and box the letter despite the letter-only instruction
+    reply = "### Step 4: Match with the given options\n\n- **Option D:** $11813.1 - 1711.11P$\n\n$$\n\\boxed{D}\n$$"
+    assert parse_letter(reply, L4) == "D"
+    assert parse_letter("The answer is A? No.\n\\boxed{\\text{C}}", L4) == "C"   # the box is the final answer
+    assert parse_letter("so \\boxed{(B)}", L4) == "B"
+    assert parse_letter("so \\boxed{B. 51.23}", L4) == "B"
+    assert parse_letter("The total is \\boxed{42}", L4) is None
+    assert parse_letter("\\boxed{E}", L4) is None              # not a valid letter for this part
+    assert parse_letter("First \\boxed{A}, corrected: \\boxed{C}", L4) == "C"
+
+
 def test_letter_from_logprobs():
     top = [("To", math.log(0.9)), ("B", math.log(0.07)), (" A", math.log(0.02)), ("The", math.log(0.01))]
     assert letter_from_logprobs(top, L4) == "B"

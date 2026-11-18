@@ -35,6 +35,20 @@ def clean_token(tok: str) -> str:
 _LEAD = re.compile(r"^\s*(?:\*\*)?\(?\s*([A-Z])\s*(?:\)|\.|:|,|\*\*|\s|$)")
 _ANSWER_IS = re.compile(r"(?:answer|ANSWER|Answer)\s*(?:is|:)?\s*(?:option\s*)?\(?\*{0,2}([A-Z])\b")
 _LAST_LINE = re.compile(r"\n\s*(?:\*\*)?\(?([A-Z])\)?\.?(?:\*\*)?\s*$")
+_BOXED_LETTER = re.compile(r"\\boxed\{((?:[^{}]|\{[^{}]*\})*)\}")
+_BOXED_TEXT = re.compile(r"\\(?:text|textbf|mathrm|mathbf)\{([^{}]*)\}")
+_BOXED_CONTENT = re.compile(r"^\(?([A-Z])\)?(?:[.:)]\s.*)?$", re.S)
+
+
+def boxed_letter(text: str) -> str | None:
+    """The letter in the last ``\\boxed{...}``: ``\\boxed{D}``, ``\\boxed{\\text{D}}``, ``\\boxed{(D)}``,
+    ``\\boxed{D. 12.5}``; None if there is no box or it holds anything else (e.g. a number)."""
+    found = _BOXED_LETTER.findall(text)
+    if not found:
+        return None
+    content = _BOXED_TEXT.sub(r"\1", found[-1]).strip()
+    m = _BOXED_CONTENT.match(content)
+    return m.group(1) if m else None
 
 
 def final_text(text: str | None) -> str:
@@ -51,14 +65,19 @@ def final_text(text: str | None) -> str:
 def parse_letter(text: str, letters: list[str]) -> str | None:
     """The option letter the model wrote, or None.
 
-    Accepts a leading letter (``"B"``, ``" B."``, ``"(B)"``, ``"B: ..."``), else the last
-    ``answer is B`` / ``ANSWER: B``, else a letter alone on the last line (a summary followed
-    by ``"\n\nB"``), in the text after any ``</think>``. Only letters valid for this part count.
+    Accepts a leading letter (``"B"``, ``" B."``, ``"(B)"``, ``"B: ..."``), else a letter in the
+    last ``\\boxed{}`` (reasoning models often reason and box the letter despite the letter-only
+    instruction), else the last ``answer is B`` / ``ANSWER: B``, else a letter alone on the last
+    line (a summary followed by ``"\n\nB"``), in the text after any ``</think>``. Only letters
+    valid for this part count.
     """
     text = final_text(text)
     m = _LEAD.match(text)
     if m and m.group(1) in letters:
         return m.group(1)
+    boxed = boxed_letter(text)
+    if boxed in letters:
+        return boxed
     found = [x for x in _ANSWER_IS.findall(text) if x in letters]
     if found:
         return found[-1]
